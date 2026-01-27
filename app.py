@@ -2,7 +2,6 @@ import streamlit as st
 import json
 import os
 import re
-import base64
 from groq import Groq
 
 # --- 1. CONFIGURATION ---
@@ -21,72 +20,45 @@ if "event_log" not in st.session_state: st.session_state.event_log = []
 if not os.path.exists('saves'): os.makedirs('saves')
 if not os.path.exists('presets'): os.makedirs('presets')
 
-# --- 2. AUDIO & UI SYSTEM ---
+# --- 2. AUDIO & STYLING ---
 def play_sound(trigger_text):
-    """Simple SFX Logic - Injects HTML Audio if keywords found"""
     trigger_text = trigger_text.lower()
-    
-    # Simple Sound Map (Using online hosted short clips for compatibility)
     sounds = {
         "boom": "https://www.myinstants.com/media/sounds/vine-boom.mp3",
         "explosion": "https://www.myinstants.com/media/sounds/explosion_1.mp3",
         "punch": "https://www.myinstants.com/media/sounds/punch-sound-effect.mp3",
         "slash": "https://www.myinstants.com/media/sounds/sword-slash.mp3",
         "teleport": "https://www.myinstants.com/media/sounds/dbz-teleport.mp3",
-        "scream": "https://www.myinstants.com/media/sounds/dbz-scream.mp3",
         "flash": "https://www.myinstants.com/media/sounds/flash-sound-effect.mp3"
     }
-    
     for key, url in sounds.items():
         if key in trigger_text:
-            # Invisible Audio Player
-            st.markdown(f"""
-                <audio autoplay>
-                <source src="{url}" type="audio/mp3">
-                </audio>
-            """, unsafe_allow_html=True)
-            break # Play only one sound per message to avoid chaos
+            st.markdown(f'<audio autoplay><source src="{url}" type="audio/mp3"></audio>', unsafe_allow_html=True)
+            break
 
 def apply_theme():
     st.markdown(f"""
     <style>
-        /* MODERN DARK THEME */
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap');
-        
         .stApp {{ background-color: #0a0a0f; color: #E0E0E0; font-family: 'Roboto', sans-serif; }}
-        
-        h1, h2, h3 {{ font-family: 'Orbitron', sans-serif; color: #00e5ff; text-shadow: 0px 0px 10px rgba(0, 229, 255, 0.4); }}
-        
+        h1, h2, h3 {{ font-family: 'Orbitron', sans-serif; color: #00e5ff; }}
         .user-bubble {{
             background: linear-gradient(135deg, #1c4e80, #2a6fdb);
             color: white; padding: 15px; border-radius: 20px 20px 0px 20px;
             margin-bottom: 15px; text-align: right; max-width: 80%; margin-left: auto;
-            box-shadow: 0px 4px 15px rgba(0,0,0,0.3); border: 1px solid #4da6ff;
+            border: 1px solid #4da6ff;
         }}
         .ai-bubble {{
             background: linear-gradient(135deg, #1a1a1a, #252525);
             color: #ff80ff; padding: 15px; border-radius: 20px 20px 20px 0px;
             margin-bottom: 15px; text-align: left; max-width: 80%; margin-right: auto;
-            border-left: 4px solid #d500f9; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+            border-left: 4px solid #d500f9;
         }}
-        
         .dialog-text {{ color: #00ffff; font-weight: bold; font-family: "Courier New", monospace; }}
-        
-        /* SIDEBAR GLASSMORPHISM */
-        section[data-testid="stSidebar"] {{
-            background-color: rgba(10, 10, 15, 0.9);
-            border-right: 1px solid #333;
-        }}
-        
-        .stat-card {{
-            background: rgba(0, 255, 0, 0.05); border: 1px solid #00ff00;
-            padding: 10px; border-radius: 8px; margin-bottom: 5px; color: #00ff00; font-family: 'Orbitron', monospace;
-        }}
-        
-        .arc-current {{
-            background: rgba(0, 255, 255, 0.1); border-left: 4px solid #00ffff;
-            color: #00ffff; font-weight: bold; padding: 8px; margin-bottom: 5px;
-        }}
+        .stat-card {{ background: rgba(0, 255, 0, 0.05); border: 1px solid #00ff00; padding: 10px; border-radius: 8px; margin-bottom: 5px; color: #00ff00; font-family: 'Orbitron', monospace; }}
+        .arc-past {{ color: #555; border-left: 3px solid #555; padding-left: 5px; }}
+        .arc-current {{ color: #00ffff; font-weight: bold; border-left: 3px solid #00ffff; padding-left: 5px; background: rgba(0,255,255,0.05); }}
+        .arc-future {{ color: #333; border-left: 3px solid #333; padding-left: 5px; }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -143,9 +115,7 @@ def process_response(text):
     text = text.replace("*", "") 
     text = text.replace("\n", "<br>")
     
-    # SOUND TRIGGER
     play_sound(text)
-    
     return text
 
 def extract_stats(text):
@@ -207,7 +177,7 @@ with st.sidebar:
             for an, ay in sorted(arcs.items(), key=lambda x: x[1]):
                 if current_year > ay + 1: st.markdown(f'<div class="arc-past">✅ {an}</div>', unsafe_allow_html=True)
                 elif current_year >= ay: st.markdown(f'<div class="arc-current">🔵 {an}</div>', unsafe_allow_html=True)
-                else: st.markdown(f'<div style="color:#555;">⚪ {an}</div>', unsafe_allow_html=True)
+                else: st.markdown(f'<div class="arc-future">⚪ {an}</div>', unsafe_allow_html=True)
     
     st.divider()
     if st.session_state.game_active and st.button("🛑 Exit Simulation"): st.session_state.game_active = False; st.rerun()
@@ -234,7 +204,10 @@ if not st.session_state.game_active:
                 st.subheader("Identity")
                 name = st.text_input("Name", value=pre_dat.get("name", ""))
                 race = st.selectbox("Race", w_dat['races'])
-                # Load Alignment from Preset if exists
+                
+                # RESTORED APPEARANCE BOX
+                looks = st.text_area("Appearance", value=pre_dat.get("looks", ""), placeholder="Describe hair, eyes, clothes...")
+                
                 def_align = pre_dat.get("align", "Neutral")
                 align = st.select_slider("Alignment", ["Heroic", "Neutral", "Evil"], value=def_align)
                 pers = st.text_area("Personality", value=pre_dat.get("personality", ""))
@@ -252,10 +225,10 @@ if not st.session_state.game_active:
                 save_preset_box = st.checkbox("Save New Preset")
 
                 if st.form_submit_button("Launch"):
-                    # SAVE PRESET WITH ALL DATA
                     if save_preset_box and name:
                         p_data = {
-                            "name": name, "align": align, "personality": pers, "power": cust_p, "looks": "" 
+                            "name": name, "align": align, "personality": pers, 
+                            "power": cust_p, "looks": looks 
                         }
                         with open(f"presets/{name}.json", 'w') as f: json.dump(p_data, f)
                         st.toast("Preset Saved!")
@@ -287,6 +260,7 @@ if not st.session_state.game_active:
                     --- PLAYER ---
                     Name: {name} | Race: {race} | Align: {align}
                     Age: {age_d}
+                    Appearance: {looks}
                     Personality: {pers}
                     
                     --- RULES ---
@@ -322,16 +296,21 @@ if not st.session_state.game_active:
     with tab3:
         saves = [f for f in os.listdir('saves') if f.endswith('.json')]
         if saves:
+            sel_file = st.selectbox("File", saves)
             if st.button("Load"):
-                with open(f"saves/{st.selectbox('File', saves)}") as f: d = json.load(f)
-                st.session_state.character = d['character']
-                st.session_state.world = d['world']
-                st.session_state.messages = d['history']
-                st.session_state.current_stats = d.get('stats', "")
-                st.session_state.socials = d.get('socials', {})
-                st.session_state.event_log = d.get('events', [])
-                st.session_state.game_active = True
-                st.rerun()
+                # SAFE LOADING
+                try:
+                    with open(f"saves/{sel_file}") as f: d = json.load(f)
+                    st.session_state.character = d.get('character', {})
+                    st.session_state.world = d.get('world', {})
+                    st.session_state.messages = d.get('history', [])
+                    st.session_state.current_stats = d.get('stats', "Stats: N/A")
+                    st.session_state.socials = d.get('socials', {})
+                    st.session_state.event_log = d.get('events', [])
+                    st.session_state.game_active = True
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Save file corrupted or old version: {e}")
 
 else:
     st.markdown(f"### 🌍 {st.session_state.world['world_name']} | 👤 {st.session_state.character['name']}")

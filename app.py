@@ -174,13 +174,11 @@ def generate_ai_response():
 
 # --- CALLBACKS FOR NEW BUTTONS ---
 def reroll_callback():
-    # Remove last AI message
     if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant":
         st.session_state.messages.pop()
     generate_ai_response()
 
 def continue_callback():
-    # Force AI to generate again without user input
     generate_ai_response()
 
 apply_theme()
@@ -222,7 +220,6 @@ with st.sidebar:
 
         with t4:
             st.caption("History Editor (God Mode)")
-            # Slider to pick message
             msg_len = len(st.session_state.messages)
             if msg_len > 0:
                 msg_idx = st.number_input("Message Index", 0, msg_len-1, value=msg_len-1)
@@ -252,8 +249,12 @@ if not st.session_state.game_active:
         sel_pre = st.selectbox("Preset", ["None"] + presets)
         pre_dat = {}
         if sel_pre != "None":
-            try: with open(f"presets/{sel_pre}") as f: pre_dat = json.load(f)
-            except: st.error("Error loading preset.")
+            # FIX: Properly handled file opening
+            try:
+                with open(f"presets/{sel_pre}") as f:
+                    pre_dat = json.load(f)
+            except:
+                st.error("Error loading preset.")
     
     with tab1:
         sel_w = st.selectbox("World", list(worlds.keys()))

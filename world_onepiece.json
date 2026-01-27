@@ -1,0 +1,35 @@
+{
+  "world_name": "One Piece World",
+  "calendar_system": "Age of Kaien",
+  "races": ["Human", "Fishman", "Giant", "Mink", "Cyborg", "Lunarian", "Oni"],
+  "power_system": "Haki / Devil Fruits",
+  "starting_locations": ["Foosha Village", "Shells Town", "Baratie", "Loguetown", "Grand Line", "New World", "Wano Kuni", "Marineford"],
+  "lore": {
+    "history": "The Great Pirate Era began when Gold Roger was executed and announced the One Piece. The world is ruled by the World Government and the Marines, opposed by the Four Emperors (Yonko) and the Revolutionary Army.",
+    "factions": ["Straw Hat Pirates", "Marines", "World Government (Cipher Pol)", "The Four Emperors (Yonko)", "Seven Warlords (Defunct)", "Revolutionary Army", "Cross Guild"],
+    "key_concepts": ["Devil Fruits (Logia, Paramecia, Zoan)", "Haki (Conqueror, Armament, Observation)", "The Void Century", "Poneglyphs", "Will of D", "Awakening"]
+  },
+  "arcs": {
+    "Romance Dawn (Luffy sets sail)": 1520,
+    "Alabasta Saga": 1520,
+    "Enies Lobby / Water 7": 1520,
+    "Marineford War (Ace's Death)": 1520,
+    "Time Skip (3D2Y)": 1522,
+    "Dressrosa": 1522,
+    "Whole Cake Island": 1522,
+    "Wano Kuni (Gear 5)": 1522,
+    "Egghead Island": 1522
+  },
+  "key_characters": [
+    {"name": "Monkey D. Luffy", "appearance": "Straw hat, scar under eye, red vest.", "personality": "Simple, loves meat, loves freedom.", "backstory": "Ate Nika fruit. Son of Dragon.", "power": "Gomu Gomu no Mi (Gear 5), Advanced Conquerors Haki."},
+    {"name": "Roronoa Zoro", "appearance": "Green hair, three swords.", "personality": "Loyal, gets lost easily.", "backstory": "Promised to be world's strongest swordsman.", "power": "Santoryu (Three Sword Style), Enma."},
+    {"name": "Sanji", "appearance": "Blonde hair covering one eye, suit.", "personality": "Loves women, chef.", "backstory": "Prince of Germa 66.", "power": "Black Leg Style, Ifrit Jambe, Exoskeleton."},
+    {"name": "Kaido", "appearance": "Massive Oni, horns, club.", "personality": "Depressed alcoholic, wants war.", "backstory": "Strongest Creature.", "power": "Azure Dragon Fruit, Thunder Bagua."},
+    {"name": "Shanks", "appearance": "Red hair, one arm, scars.", "personality": "Laid back but terrifying.", "backstory": "Ex-Roger Pirate. Yonko.", "power": "Ultimate Haki master (Divine Departure)."},
+    {"name": "Blackbeard (Teach)", "appearance": "Missing teeth, fat.", "personality": "Cowardly yet ambitious.", "backstory": "Only man with two fruits.", "power": "Darkness Fruit + Quake Fruit."},
+    {"name": "Trafalgar Law", "appearance": "Spotted hat, tattoos.", "personality": "Calculating doctor.", "backstory": "Survivor of White Lead disease.", "power": "Ope Ope no Mi (Room/Surgery)."},
+    {"name": "Nami", "appearance": "Orange hair, tattoo on shoulder.", "personality": "Greedy but kind navigator.", "backstory": "Ex-Arlong pirate slave.", "power": "Clima-Tact (Zeus)."},
+    {"name": "Whitebeard", "appearance": "Giant mustache (no beard).", "personality": "Loves family.", "backstory": "Strongest Man.", "power": "Gura Gura no Mi (Quakes)."},
+    {"name": "Akainu", "appearance": "Red suit, admiral coat.", "personality": "Absolute Justice.", "backstory": "Fleet Admiral.", "power": "Magma Fruit."}
+  ]
+}

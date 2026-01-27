@@ -1,0 +1,33 @@
+{
+  "world_name": "Jujutsu Kaisen",
+  "calendar_system": "Year",
+  "races": ["Sorcerer", "Non-Sorcerer", "Cursed Spirit", "Death Painting", "Vengeful Spirit"],
+  "power_system": "Cursed Energy",
+  "starting_locations": ["Tokyo Jujutsu High", "Kyoto Jujutsu High", "Shibuya", "Sendai Colony", "Star Religious Group HQ"],
+  "lore": {
+    "history": "Cursed Energy is born from negative human emotions. For centuries, Sorcerers have exorcised Curses in secret. The balance shifted when Ryomen Sukuna's fingers began resurfacing.",
+    "factions": ["Tokyo Jujutsu High", "Kyoto Jujutsu High", "The Zenin Clan", "The Gojo Clan", "The Kamo Clan", "Time Vessel Association", "Disaster Curses"],
+    "key_concepts": ["Domain Expansion", "Black Flash", "Heavenly Restriction", "Reverse Cursed Technique", "Binding Vows", "Six Eyes", "Simple Domain"]
+  },
+  "arcs": {
+    "Hidden Inventory (Teen Gojo)": 2006,
+    "Jujutsu Kaisen 0 (Yuta)": 2017,
+    "Fearsome Womb (Itadori eats finger)": 2018,
+    "Kyoto Goodwill Event": 2018,
+    "Shibuya Incident": 2018,
+    "Culling Game": 2018,
+    "Shinjuku Showdown": 2018
+  },
+  "key_characters": [
+    {"name": "Satoru Gojo", "appearance": "White hair, blindfold, tall. Black uniform.", "personality": "Playful, arrogant, strongest.", "backstory": "Born with Six Eyes + Limitless.", "power": "Limitless (Infinity, Blue, Red, Hollow Purple). Infinite Void."},
+    {"name": "Ryomen Sukuna", "appearance": "Four arms, tattoos (in true form).", "personality": "Hedonistic, cruel, king of curses.", "backstory": "Heian era sorcerer who became a curse.", "power": "Cleave, Dismantle, Malevolent Shrine."},
+    {"name": "Yuji Itadori", "appearance": "Pink hair, hoodies.", "personality": "Kind, selfless, physical beast.", "backstory": "Ate Sukuna's finger.", "power": "Divergent Fist, Black Flash, Soul Punches."},
+    {"name": "Megumi Fushiguro", "appearance": "Spiky black hair.", "personality": "Stoic, tactical.", "backstory": "Son of Toji. Sold to Gojo.", "power": "Ten Shadows Technique (Mahoraga)."},
+    {"name": "Toji Fushiguro", "appearance": "Muscular, scar on lip.", "personality": "Mercenary, gambler.", "backstory": "Zero Cursed Energy heavenly restriction.", "power": "Superhuman stats, Split Soul Katana."},
+    {"name": "Suguru Geto", "appearance": "Long black hair, monk robes.", "personality": "Hates non-sorcerers.", "backstory": "Gojo's ex-best friend.", "power": "Cursed Spirit Manipulation."},
+    {"name": "Yuta Okkotsu", "appearance": "Dark hair, white uniform, sword.", "personality": "Nervous but protective.", "backstory": "Cursed his childhood friend Rika.", "power": "Copy Technique, Rika (Queen of Curses)."},
+    {"name": "Maki Zenin", "appearance": "Glasses (pre-shibuya), Burn scars (post-shibuya).", "personality": "Strong-willed, hates her clan.", "backstory": "Born with low CE.", "power": "Heavenly Restriction (Toji level physicals)."},
+    {"name": "Mahito", "appearance": "Patchwork face, grey hair.", "personality": "Childish psychopath.", "backstory": "Curse born from human hatred of humans.", "power": "Idle Transfiguration."},
+    {"name": "Kento Nanami", "appearance": "Blonde, suit, goggles.", "personality": "Professional, tired.", "backstory": "Ex-salaryman.", "power": "Ratio Technique."}
+  ]
+}

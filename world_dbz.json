@@ -1,0 +1,137 @@
+{
+  "world_name": "Dragon Ball Universe",
+  "calendar_system": "Age",
+  "races": ["Saiyan", "Earthling", "Namekian", "Frieza Race", "Android", "Majin", "Core Person", "Angel", "Destroyer"],
+  "power_system": "Ki",
+  "starting_locations": ["Mount Paozu", "West City", "Kame House", "Planet Vegeta (Past)", "Frieza Planet 79", "Namek", "Sacred World of the Kai"],
+  "lore": {
+    "history": "Universe 7 is overseen by Supreme Kais and Gods of Destruction. The history is defined by the tyranny of Frieza, who destroyed the warrior race of Saiyans in Age 737. Earth has since become the focal point for the strongest warriors in the cosmos.",
+    "factions": ["Z-Fighters", "Frieza Force", "Red Ribbon Army", "Galactic Patrol", "Time Patrollers"],
+    "key_concepts": ["Zenkai Boost", "Super Saiyan", "God Ki", "Dragon Balls", "Ultra Instinct", "Fusion"]
+  },
+  "arcs": {
+    "Bardock Era": 737,
+    "Dragon Ball Start": 749,
+    "Saiyan Saga": 761,
+    "Frieza Saga": 762,
+    "Android Saga": 767,
+    "Buu Saga": 774,
+    "Battle of Gods": 778,
+    "Tournament of Power": 780,
+    "Super Hero": 783
+  },
+  "key_characters": [
+    {
+      "name": "Son Goku (Kakarot)",
+      "appearance": "A Saiyan with wild, gravity-defying black spiky hair. He typically wears a turtle hermit gi (orange and blue). He has a youthful face that rarely shows age, and a muscular, honed physique.",
+      "personality": "Pure-hearted, naive, and obsessed with self-improvement. Goku loves fighting strong opponents and shows mercy even to irredeemable villains. He lacks general education but is a combat genius.",
+      "backstory": "Born Kakarot on Planet Vegeta, he was sent to Earth as a baby to destroy it. A head injury erased his programming. Raised by Grandpa Gohan, he grew up to become Earth's greatest defender.",
+      "power": "Master of Martial Arts. techniques include the Kamehameha, Spirit Bomb, and Instant Transmission. Can transform into Super Saiyan 1, 2, 3, God, Blue, and utilize Ultra Instinct."
+    },
+    {
+      "name": "Vegeta IV",
+      "appearance": "Short in stature but incredibly muscular. He has flame-like black hair that stands straight up and a distinct widow's peak. Usually wears Saiyan Battle Armor or a dark blue bodysuit.",
+      "personality": "Arrogant, prideful, and disciplined. As the Prince of Saiyans, he holds himself to an impossible standard. He evolved from a ruthless killer to a protective father, though he hides his care behind a scowl.",
+      "backstory": "The Prince of Planet Vegeta. He served Frieza after his planet's destruction, harboring deep resentment. After fighting Goku on Earth, he slowly defected, settling down with Bulma.",
+      "power": "Elite Saiyan warrior. Signature attacks: Galick Gun, Final Flash, Big Bang Attack. Forms: Super Saiyan 1, 2, God, Blue, and Ultra Ego (power from damage)."
+    },
+    {
+      "name": "Frieza",
+      "appearance": "A mutant alien with bio-armor. In his Final Form, he is sleek, white, and purple with a smooth head. He has red eyes, purple lips, and a long powerful tail.",
+      "personality": "Polite but sadistic. Frieza speaks with sophisticated eloquence while committing genocide. He is a narcissist who fears nothing but the 'Super Saiyan' legend.",
+      "backstory": "The Galactic Emperor who inherited the Cold Force. He ruled the universe with an iron fist and destroyed Planet Vegeta. After being killed by Trunks, he was resurrected and seeks to conquer the gods.",
+      "power": "Prodigy who never trained until recently. Techniques: Death Beam, Death Ball, Supernova. Forms: 1st-3rd, Final, Golden Frieza, and Black Frieza."
+    },
+    {
+      "name": "Son Gohan",
+      "appearance": "Tall and scholar-like, often wearing glasses and a suit, or a purple demon gi similar to Piccolo's. He has spiky black hair that changes style often.",
+      "personality": "Gentle, pacifist, and intellectual. Unlike his father, Gohan hates fighting but possesses a hidden, explosive rage that makes him the strongest when cornered.",
+      "backstory": "The first Saiyan-Human hybrid. Kidnapped by Raditz, trained by Piccolo, and the defeat of Cell. He prioritized his family and studies over training in adulthood.",
+      "power": "Highest latent potential. Techniques: Masenko, Kamehameha. Forms: Super Saiyan 1, 2, Ultimate (Mystic), and Gohan Beast."
+    },
+    {
+      "name": "Piccolo",
+      "appearance": "A tall, green-skinned Namekian with pointy ears, antennae, and muscle patches on his arms/legs. Wears a heavy white weighted cape and turban.",
+      "personality": "Stoic, stern, and wise. Originally a Demon King seeking world domination, he was softened by Gohan. He is the tactical leader of the Z-Fighters.",
+      "backstory": "The reincarnation of Demon King Piccolo. He merged with Kami to become the 'Nameless Namekian' again. He serves as Gohan's surrogate father and Pan's grandfather figure.",
+      "power": "Namekian regeneration and stretching. Techniques: Special Beam Cannon, Hellzone Grenade. Forms: Potential Unleashed, Orange Piccolo."
+    },
+    {
+      "name": "Future Trunks",
+      "appearance": "Lean and handsome with lavender hair (cut in a bowl/undercut style). Wears a Capsule Corp jacket and carries a sword on his back.",
+      "personality": "Serious, cautious, and polite. Unlike modern Saiyans, Trunks does not play with his food; he finishes fights immediately due to his traumatic upbringing.",
+      "backstory": "Hails from a timeline where Androids wiped out humanity. He traveled back in time to save Goku from heart virus and warn the Z-Fighters.",
+      "power": "Swordsman. Techniques: Burning Attack, Masenko, Shining Sword Attack. Forms: Super Saiyan 1, 2, and Super Saiyan Rage.",
+      "timeline": "Future"
+    },
+    {
+      "name": "Cell",
+      "appearance": "A tall, insectoid Bio-Android. Perfect Cell has a green exoskeleton with black spots, a white face, and purple plates. He has wings and a stinger tail (retracted).",
+      "personality": "Sophisticated, arrogant, and vain. He views himself as the 'Perfect Being'. He enjoys instilling fear and testing his power rather than simple destruction.",
+      "backstory": "Created by Dr. Gero using the DNA of Goku, Vegeta, Frieza, and Piccolo. He traveled from the future to absorb Androids 17 and 18 to achieve perfection.",
+      "power": "Possesses all Z-Fighter techniques (Kamehameha, Solar Flare, Death Beam). Can regenerate from a single cell. Can spawn Cell Juniors."
+    },
+    {
+      "name": "Majin Buu (Fat/Good)",
+      "appearance": "A large, round, pink blob-like creature wearing a vest, cape, and baggy pants. He has holes in his head that release steam.",
+      "personality": "Childlike, gluttonous, and chaotic. He loves candy and playtime. He is easily manipulated but has a good heart when taught right from wrong by Mr. Satan.",
+      "backstory": "An ancient magical entity summoned by Bibidi. He killed the Kais millions of years ago. In the modern era, he expelled his evil side and became a Z-Fighter.",
+      "power": "Magic manipulation. Can turn people into chocolate. Infinite regeneration and stamina. Can heal the blind and injured instantly."
+    },
+    {
+      "name": "Beerus",
+      "appearance": "A purple, hairless, anthropomorphic cat (Sphynx) wearing Egyptian-style godly attire.",
+      "personality": "Lazy, gourmet-obsessed, and volatile. As a God of Destruction, he destroys planets over petty grievances (like bad food) but is generally neutral.",
+      "backstory": "The Hakaishin of Universe 7 for millions of years. He woke up from a nap seeking the 'Super Saiyan God', leading him to spare Earth for its food.",
+      "power": "Hakai (Destruction Energy). Can erase matter from existence. Millions of times stronger than mortals. Knows rudimentary Ultra Instinct."
+    },
+    {
+      "name": "Whis",
+      "appearance": "A tall, blue-skinned Angel with white hair in a quiff. He holds a staff and has a halo around his neck.",
+      "personality": "Effeminate, polite, and indifferent. He is Beerus's attendant and teacher. He rarely intervenes in mortal affairs due to Angel Law.",
+      "backstory": "An Angel sent by the Grand Priest to oversee Universe 7. He is technically stronger than Beerus but acts as a guide.",
+      "power": "Master of Autonomous Ultra Instinct. Can rewind time by 3 minutes. Can travel through the universe instantly.",
+      "race": "Angel"
+    },
+    {
+      "name": "Bulma Briefs",
+      "appearance": "Beautiful woman with blue hair (style changes constantly). Fashionable and wealthy.",
+      "personality": "Genius, vain, temperamental, but fiercely loyal. She is the smartest human on Earth and isn't afraid to slap a God.",
+      "backstory": "Heiress to Capsule Corp. She invented the Dragon Radar, starting the entire series. Wife of Vegeta.",
+      "power": "Super Genius Intellect. Created Time Machines, Spaceships, and can repair Androids.",
+      "race": "Earthling"
+    },
+    {
+      "name": "Android 17",
+      "appearance": "Young man with long black hair, a scarf, and a Ranger armband. Wears jeans and t-shirts.",
+      "personality": "Cool, aloof, and independent. Loves nature and animals. In combat, he is pragmatic and calm.",
+      "backstory": "A human named Lapis turned into a cyborg by Dr. Gero. Originally wanted to kill Goku, he settled down as a Park Ranger and won the Tournament of Power.",
+      "power": "Infinite Energy (Stamina never drops). Android Barriers. Self-destruct mechanism (removed). Rival to SSJ Blue.",
+      "race": "Android"
+    },
+    {
+      "name": "Android 18",
+      "appearance": "Beautiful blonde woman with sharp blue eyes. Wears casual denim clothing.",
+      "personality": "Sarcastic, money-loving, and cool. Deeply cares for her husband Krillin and daughter Marron.",
+      "backstory": "Lazuli, twin of 17. Modified by Gero. She broke Vegeta's arm. Later married Krillin.",
+      "power": "Infinite Energy. Destructo Disc (learned). High-speed combatant.",
+      "race": "Android"
+    },
+    {
+      "name": "Broly (DBS)",
+      "appearance": "Tall, dark-skinned Saiyan with scars and a pelt around his waist. In Berserk forms, he becomes massive (8ft+).",
+      "personality": "Gentle, shy, and naive. He hates fighting but loses control when enraged, becoming a mindless monster.",
+      "backstory": "Born with power exceeding Prince Vegeta, he was exiled to a wasteland planet. Raised by his vengeful father Paragus. Recruited by Frieza.",
+      "power": "The Legendary Super Saiyan. His power grows infinitely during battle. Adapted from base to SSJ Blue level in one hour.",
+      "race": "Saiyan"
+    },
+    {
+      "name": "Jiren",
+      "appearance": "Muscular, gray-skinned alien with large black eyes. Wears the red/black Pride Trooper uniform.",
+      "personality": "Stoic, silent, and obsessed with 'Strength is Justice'. Trauma made him believe trust is worthless.",
+      "backstory": "His master and village were killed by a villain. He trained alone to achieve absolute strength, becoming stronger than his universe's God of Destruction.",
+      "power": "Absolute Strength. His glare can push back Spirit Bombs. Surpasses time itself. Rival to Ultra Instinct.",
+      "race": "Unknown"
+    }
+  ]
+}

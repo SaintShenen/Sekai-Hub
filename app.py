@@ -7,7 +7,6 @@ from groq import Groq
 # --- 1. CONFIGURATION ---
 st.set_page_config(page_title="Sekai-Hub", page_icon="⚔️", layout="wide", initial_sidebar_state="expanded")
 
-# --- SESSION STATE ---
 if "game_active" not in st.session_state: st.session_state.game_active = False
 if "messages" not in st.session_state: st.session_state.messages = []
 if "api_key" not in st.session_state: st.session_state.api_key = ""
@@ -16,7 +15,6 @@ if "current_stats" not in st.session_state: st.session_state.current_stats = "In
 if "socials" not in st.session_state: st.session_state.socials = {}
 if "event_log" not in st.session_state: st.session_state.event_log = []
 
-# Ensure Folders
 if not os.path.exists('saves'): os.makedirs('saves')
 if not os.path.exists('presets'): os.makedirs('presets')
 
@@ -84,20 +82,17 @@ def process_response(text):
     text = re.sub(r"---.*?---", "", text) 
     text = re.sub(r"###.*?DATA", "", text)
     
-    # Event Capture
     event_matches = re.findall(r"\|\|\s*EVENT\s*\|(.*?)\|\|", text, flags=re.DOTALL)
     for event_desc in event_matches:
         clean = event_desc.strip()
         if not st.session_state.event_log or st.session_state.event_log[-1] != clean: st.session_state.event_log.append(clean)
     text = re.sub(r"\|\|\s*EVENT\s*\|(.*?)\|\|", "", text, flags=re.DOTALL)
 
-    # Stats Capture
     stat_match = re.search(r"\|\|\s*STATS\s*\|(.*?)\|\|", text, flags=re.DOTALL)
     if stat_match:
         st.session_state.current_stats = stat_match.group(1).strip()
         text = text.replace(stat_match.group(0), "")
 
-    # Socials Capture
     npc_matches = re.findall(r"\|\|\s*SOCIAL\s*\|(.*?)\|\|", text, flags=re.DOTALL)
     for npc_data in npc_matches:
         parts = [p.strip() for p in npc_data.split('|') if p.strip()]
@@ -110,7 +105,6 @@ def process_response(text):
         if name != "Unknown": st.session_state.socials[name] = {"rel": rel, "status": status, "bio": bio}
     text = re.sub(r"\|\|\s*SOCIAL\s*\|(.*?)\|\|", "", text, flags=re.DOTALL)
 
-    # Formatting
     text = re.sub(r'(".*?")', r'<span class="dialog-text">\1</span>', text, flags=re.DOTALL)
     text = text.replace("*", "") 
     text = text.replace("\n", "<br>")
@@ -174,6 +168,8 @@ with st.sidebar:
             st.caption("Timeline Status")
             current_year = get_current_year()
             arcs = st.session_state.world.get('arcs', {})
+            # Detect Start of Canon (Assuming average of arcs or specific key)
+            # We just sort and display
             for an, ay in sorted(arcs.items(), key=lambda x: x[1]):
                 if current_year > ay + 1: st.markdown(f'<div class="arc-past">✅ {an}</div>', unsafe_allow_html=True)
                 elif current_year >= ay: st.markdown(f'<div class="arc-current">🔵 {an}</div>', unsafe_allow_html=True)
@@ -194,29 +190,48 @@ if not st.session_state.game_active:
     with tab2:
         presets = [f for f in os.listdir('presets') if f.endswith('.json')]
         sel_pre = st.selectbox("Preset", ["None"] + presets)
-        pre_dat = json.load(open(f"presets/{sel_pre}")) if sel_pre != "None" else {}
+        # Load preset data securely
+        pre_dat = {}
+        if sel_pre != "None":
+            try:
+                with open(f"presets/{sel_pre}") as f: pre_dat = json.load(f)
+            except: st.error("Error loading preset.")
     
     with tab1:
         sel_w = st.selectbox("World", list(worlds.keys()))
         if sel_w:
             w_dat = worlds[sel_w]
+            
+            # --- VISUAL TIMELINE ---
+            st.info("📅 **World Timeline Preview:**")
+            arcs = w_dat.get('arcs', {})
+            sorted_arcs = sorted(arcs.items(), key=lambda x: x[1])
+            # Show the first, middle, and last arc to give context
+            if sorted_arcs:
+                timeline_str = f"{sorted_arcs[0][1]} ({sorted_arcs[0][0]})  --->  {sorted_arcs[-1][1]} ({sorted_arcs[-1][0]})"
+                st.caption(timeline_str)
+
             with st.form("new"):
                 st.subheader("Identity")
                 name = st.text_input("Name", value=pre_dat.get("name", ""))
                 race = st.selectbox("Race", w_dat['races'])
                 
-                # RESTORED APPEARANCE BOX
-                looks = st.text_area("Appearance", value=pre_dat.get("looks", ""), placeholder="Describe hair, eyes, clothes...")
+                # FIXED: LOADING APPEARANCE CORRECTLY
+                looks = st.text_area("Appearance", value=pre_dat.get("looks", ""), placeholder="Hair color, eyes, clothes...")
                 
                 def_align = pre_dat.get("align", "Neutral")
                 align = st.select_slider("Alignment", ["Heroic", "Neutral", "Evil"], value=def_align)
                 pers = st.text_area("Personality", value=pre_dat.get("personality", ""))
                 
+                # NEW: BACKSTORY FIELD
+                st.subheader("Origins")
+                backstory = st.text_area("Character Backstory", value=pre_dat.get("backstory", ""), placeholder="Where were you born? Who were your parents? What defines you?")
+                
                 st.subheader("Timeline Start")
                 c1, c2 = st.columns(2)
                 with c1:
-                    t_arc = st.selectbox("Starting Arc", list(w_dat['arcs'].keys()))
-                    t_age = st.number_input("Age at Start", 1, 1000, 16)
+                    t_arc = st.selectbox("Target Arc", list(w_dat['arcs'].keys()))
+                    t_age = st.number_input("Age at Start", 1, 1000, 7)
                 with c2:
                     mode = st.radio("Mode", ["Born as Baby", "Drop-in at Target Age"])
                     p_mode = st.radio("Power", ["Manual", "Random"])
@@ -225,10 +240,11 @@ if not st.session_state.game_active:
                 save_preset_box = st.checkbox("Save New Preset")
 
                 if st.form_submit_button("Launch"):
+                    # SAVE PRESET WITH ALL DATA INCLUDING BACKSTORY
                     if save_preset_box and name:
                         p_data = {
                             "name": name, "align": align, "personality": pers, 
-                            "power": cust_p, "looks": looks 
+                            "power": cust_p, "looks": looks, "backstory": backstory
                         }
                         with open(f"presets/{name}.json", 'w') as f: json.dump(p_data, f)
                         st.toast("Preset Saved!")
@@ -243,6 +259,17 @@ if not st.session_state.game_active:
                         age_d = t_age
                         intro = "The player enters the story at this age."
 
+                    # === TIMELINE LOGIC GATE ===
+                    # Calculate canon offset
+                    # Finds the 'Main Canon' start (approximate)
+                    canon_start_year = min(w_dat['arcs'].values()) + 15 # rough estimate if not defined
+                    
+                    timeline_instruction = ""
+                    if curr_year < canon_start_year:
+                        timeline_instruction = f"CRITICAL WARNING: It is Year {curr_year}. This is BEFORE the main anime plot. Characters like Deku/Naruto/Luffy are either CHILDREN or NOT BORN yet. Do NOT spawn them as adults. All Might/Minato/Roger might be active."
+                    elif curr_year > canon_start_year + 5:
+                        timeline_instruction = f"CRITICAL WARNING: It is Year {curr_year}. This is LATE in the timeline. Characters are older/adults."
+
                     formatted_lore = format_lore(w_dat)
                     formatted_chars = format_characters(w_dat)
 
@@ -254,19 +281,18 @@ if not st.session_state.game_active:
                     CURRENT YEAR: {curr_year}
                     
                     {formatted_lore}
-                    CHARACTERS:
-                    {formatted_chars}
                     
                     --- PLAYER ---
                     Name: {name} | Race: {race} | Align: {align}
                     Age: {age_d}
                     Appearance: {looks}
                     Personality: {pers}
+                    Backstory: {backstory}
                     
-                    --- RULES ---
-                    1. **ANTI-PUPPETING:** Never write the user's thoughts/actions.
-                    2. **ACCURACY:** Stick to the LORE.
-                    3. **SOUND FX:** If an explosion happens, write *BOOM*. If a punch happens, write *PUNCH*.
+                    --- LOGIC GATES ---
+                    1. **TIMELINE CHECK:** {timeline_instruction}
+                    2. **BACKSTORY:** Incorporate the user's backstory ({backstory}) into the intro. If they said they are an orphan, start in an orphanage.
+                    3. **ANTI-PUPPETING:** Never write the user's thoughts/actions.
                     
                     --- DATA TAGS ---
                     || STATS | Age: {age_d} | Year: {curr_year} | Loc: [Place] ||
@@ -298,7 +324,6 @@ if not st.session_state.game_active:
         if saves:
             sel_file = st.selectbox("File", saves)
             if st.button("Load"):
-                # SAFE LOADING
                 try:
                     with open(f"saves/{sel_file}") as f: d = json.load(f)
                     st.session_state.character = d.get('character', {})

@@ -1,13 +1,188 @@
 {
   "world_name": "My Hero Academia",
-  "calendar_system": "Hero Era",
-  "races": ["Human (Emitter)", "Human (Transformation)", "Human (Mutant)", "Quirkless"],
+  "calendar_system": "Hero Era (HE)",
+  "races": ["Human (Emitter)", "Human (Transformation)", "Human (Mutant)", "Quirkless", "High-End Nomu"],
+  "power_system": "Quirk",
+  "starting_locations": [
+    "Musutafu City: A bustling metropolis and home to U.A. High. It is the heart of hero society in Japan.",
+    "U.A. High School: A massive campus protected by the 'U.A. Barrier'. Includes the Heights Alliance dorms, Gym Gamma, and the USJ facility.",
+    "Kamino Ward: A district in Yokohama. Formerly a villain hideout, now a crater/memorial site where All Might retired.",
+    "Deika City: A remote mountain city secretly controlled entirely by the Meta Liberation Army.",
+    "Jaku General Hospital: A massive hospital serving as the secret laboratory for Dr. Kyudai Garaki and the High-End Nomu.",
+    "Tartarus Prison: An island fortress for criminals too dangerous for normal laws (e.g., All For One).",
+    "I-Island: A mobile floating city for scientists, moving constantly to protect quirk research."
+  ],
+  "lore": {
+    "history": "The era of humanity ended when a glowing baby was born in Qing Qing City. Within a generation, 80% of the population developed 'Quirks'. Civilization collapsed into the 'Dark Age' where warlords ruled. The Hero System was established to restore order, with 'Pro Heroes' acting as state-sanctioned peacekeepers. All Might, the Symbol of Peace, singularily suppressed the crime rate to historical lows, creating a fragile peace that is now shattering.",
+    "power_mechanics": "Quirks are physical abilities governed by the 'Quirk Factor'. They are like muscles; overuse causes backlash (burns, nausea, stupidity). \n\n1. Emitter: Releases energy or substances (e.g., Fire, Acid).\n2. Transformation: Alters the user's body temporarily (e.g., Hardening, Gigantification).\n3. Mutant: Permanent physical changes (e.g., Frog, Tail).\n\nQuirk Awakening: In moments of extreme life-or-death stress, a quirk can evolve, gaining new properties (e.g., Toga using the quirks of people she transforms into).",
+    "factions": [
+      "U.A. High School: The premier hero academy. Motto: 'Plus Ultra'. Faculty includes Eraserhead, Present Mic, and Midnight.",
+      "League of Villains (LOV): A terrorist cell founded by All For One and led by Shigaraki. They seek to destroy the society that rejected them.",
+      "Meta Liberation Army (MLA): An army of 100,000 citizens led by Re-Destro. They believe quirks should be used freely and oppose government regulation.",
+      "Paranormal Liberation Front (PLF): The terrifying fusion of the LOV and MLA, commanding vast resources and High-End Nomu.",
+      "Hero Public Safety Commission (HPSC): The ruthless government body that oversees heroes. They assassinate threats secretly (like Lady Nagant and Hawks) to maintain the illusion of peace.",
+      "Shie Hassaikai: A Yakuza organization led by Overhaul. They manufacture bullets that can erase quirks."
+    ],
+    "key_concepts": [
+      "Quirk Singularity Theory: The concept that quirks act like viruses, blending and becoming stronger with each generation until they become too powerful for the human body to control.",
+      "Vestiges: The spirits of past One For All users living inside the quirk. They can communicate with the current holder.",
+      "Nomu: Artificial humans created from corpses. They possess multiple quirks but have no brain function unless they are 'High-Ends'.",
+      "Vigilantism: The act of using a quirk to fight crime without a license. It is illegal, though some (like The Crawler) are tolerated."
+    ]
+  },
   "arcs": {
     "Vigilantes Era": 190,
-    "Prime All Might": 195,
-    "Start of Canon (Deku meets All Might)": 200,
-    "Kamino Ward (AFO vs All Might)": 201,
+    "Golden Age of All Might": 195,
+    "Start of Canon (Entrance Exam)": 200,
+    "U.A. Sports Festival": 200,
+    "Stain Arc": 200,
+    "Kamino Ward (End of All Might)": 201,
+    "Overhaul Arc": 201,
+    "Pro Hero Arc (Endeavor #1)": 201,
     "Paranormal Liberation War": 202,
+    "Dark Hero Arc (Vigilante Deku)": 202,
     "Final War": 203
-  }
+  },
+  "key_characters": [
+    {
+      "name": "Izuku Midoriya (Deku)",
+      "appearance": "Short, messy green hair with black highlights. Large green eyes and freckles. Wears a teal jumpsuit with iron soles and a hood that resembles rabbit ears. His arms are heavily scarred from quirk overuse.",
+      "personality": "Highly analytical and mumbles constantly. He has a pathological need to save everyone, even villains. Originally timid, he has grown into a decisive leader who inspires others. He carries the weight of the world on his shoulders.",
+      "backstory": "Born Quirkless in a superhuman society, he was bullied relentlessly. He rushed to save his bully from a villain, impressing All Might, who passed down 'One For All' to him.",
+      "power": "One For All: A stockpile of raw power. Grants super speed/strength. Sub-Quirks: Blackwhip (Energy ropes), Float (Flight), Danger Sense (Spider-sense), Smokescreen, Fa Jin (Kinetic buildup), Gearshift (Speed modulation)."
+    },
+    {
+      "name": "Katsuki Bakugo (Dynamight)",
+      "appearance": "Ash-blond spiky hair and sharp red eyes. Wears a black tank top with an orange X, baggy pants, and massive grenade-shaped gauntlets on his forearms.",
+      "personality": "Aggressive, rude, and screams 'Die!' constantly. He is a perfectionist with a fragile ego. Despite his villainous attitude, he is dedicated to victory and hates underhanded tactics. He feels deep guilt for All Might's retirement.",
+      "backstory": "A prodigy praised since birth. He bullied Deku to distance himself from weakness. After being kidnapped by villains and failing the license exam, he began to respect Deku as a rival.",
+      "power": "Explosion: He sweats a nitroglycerin-like substance from his palms and ignites it. Uses blasts for flight, stun grenades, and devastating impact attacks like 'Howitzer Impact'."
+    },
+    {
+      "name": "Shoto Todoroki",
+      "appearance": "Split hair (White on right, Red on left) and a large burn scar over his left eye. Heterochromatic eyes (Grey/Turquoise). Wears a blue tactical suit.",
+      "personality": "Stoic, blunt, and socially awkward. He takes things very literally (hand crusher joke). He originally hated his fire side but is learning to accept it as his own power, not his father's.",
+      "backstory": "The result of a 'Quirk Marriage' designed to create a child with ice and fire. His father Endeavor abused him trained him brutally. His mother snapped and poured boiling water on his face.",
+      "power": "Half-Cold Half-Hot: The right side freezes anything it touches; the left side generates intense flames. Moves: Heaven-Piercing Ice Wall, Flashfire Fist, Phosphor."
+    },
+    {
+      "name": "All Might (Toshinori Yagi)",
+      "appearance": "Muscle Form: 7ft tall, blonde hair in V-shape, permanent smile, heavy shading. True Form: Skeletal, sunken eyes, coughing blood, oversized clothes.",
+      "personality": "The charismatic Symbol of Peace who laughs to banish fear. In private, he is anxious, regrets his failures as a teacher, and deeply loves his students.",
+      "backstory": "Born Quirkless. He inherited OFA from Nana Shimura. He defeated All For One twice but suffered a horrific injury that destroyed his stomach/lung. Retired after using the last embers of his power.",
+      "power": "One For All (Embers): Can change the weather with a single punch. Moves: Detroit Smash, Texas Smash, United States of Smash."
+    },
+    {
+      "name": "Tomura Shigaraki",
+      "appearance": "Pale skin, messy blue-white hair, red eyes, dry cracked skin. Initially wore 14 severed hands all over his body. Later wears a torn suit and cape.",
+      "personality": "Started as a petulant man-child using video game terminology. Evolved into a calm, nihilistic destroyer who wants to turn the entire world to dust to stop the 'itching' in his mind.",
+      "backstory": "Born Tenko Shimura, grandson of a hero. His father abused him. His quirk manifested violently, killing his whole family. All For One found him alone on the streets and raised him to hate heroes.",
+      "power": "Decay: Anything he touches with five fingers turns to dust. After awakening, the decay spreads like a virus through anything connected to the target, leveling cities in seconds."
+    },
+    {
+      "name": "Endeavor (Enji Todoroki)",
+      "appearance": "A large, muscular man with a flaming beard and mustache. His hero costume is engulfed in flames. He has intense turquoise eyes.",
+      "personality": "Strict, intense, and historically abusive. He is obsessed with strength. After becoming #1, he realized the hollowness of his title and is genuinely trying to atone for his past sins.",
+      "backstory": "The eternal #2 Hero who could never surpass All Might. In desperation, he bought a wife with an ice quirk to breed a superior successor, destroying his family in the process.",
+      "power": "Hellflame: Pyrokinetic manipulation. Can fly, melt stone, and incinerate Nomus. Overuse raises his body temperature, threatening to cook his internal organs."
+    },
+    {
+      "name": "All For One",
+      "appearance": "A man in a sharp suit. His head is a mass of scar tissue with no eyes, nose, or ears. He senses via infrared and vibration. Wears a terrifying life-support mask.",
+      "personality": "The Demon Lord. Sophisticated, polite, and deeply manipulative. He views humans as toys and quirks as trading cards. He has no morality, only a desire to rule.",
+      "backstory": "Born at the dawn of quirks. He ruled Japan from the shadows for a century by taking quirks from the strong and giving them to the weak (for a price). He created the One For All lineage by accident.",
+      "power": "All For One: The ability to steal quirks permanently and grant them to others. He possesses thousands of stolen quirks (Air Cannon, Regeneration, warping, strength enhancers)."
+    },
+    {
+      "name": "Ochaco Uraraka (Uravity)",
+      "appearance": "Shoulder-length brown hair, permanent pink blush marks, pads on her fingertips. Wears a pink and black suit with large wrist gauntlets.",
+      "personality": "Bubbly and kind, but hides a fierce, competitive spirit. She acts as the emotional glue of the class. Motivated by money to help her parents.",
+      "backstory": "Her parents own a struggling construction company. She wants to be a hero to earn enough money to let them retire comfortably.",
+      "power": "Zero Gravity: Anything she touches with 5 fingers becomes weightless. She can release the effect by touching her fingers together. Awakening: Can make gravity float surrounding objects without touching them."
+    },
+    {
+      "name": "Tenya Iida (Ingenium)",
+      "appearance": "Tall, blue hair, glasses, rectangular hand movements. Wears white armor resembling a knight with exhaust pipes.",
+      "personality": "Serious, rule-abiding, and loud. He takes his role as Class Rep very seriously. He values honor and legacy above all.",
+      "backstory": "From a prestigious hero family. His brother Tensei was crippled by the Hero Killer Stain. Tenya took up his brother's name to continue the legacy.",
+      "power": "Engine: Has car-like engines in his calves. Fuelled by orange juice. Grants super speed and devastating kicking power. 'Recipro Burst' creates unmatched acceleration."
+    },
+    {
+      "name": "Shota Aizawa (Eraserhead)",
+      "appearance": "Unkempt long black hair, stubble, bloodshot eyes. Wears a grey scarf (Capture Weapon) and black jumpsuit.",
+      "personality": "Logical, tired, and strict. He hates the media and irrational behavior. He cares deeply for his students but threatens expulsion to push them.",
+      "backstory": "An underground hero. He lost his best friend Oboro in high school during a villain attack, which traumatized him into becoming a teacher.",
+      "power": "Erasure: He can nullify the quirk of anyone he looks at. The effect breaks if he blinks. Prolonged use causes dry eye."
+    },
+    {
+      "name": "Dabi (Toya Todoroki)",
+      "appearance": "Patchwork skin (healthy skin stapled to purple burnt skin). Spiky black (later white) hair. Turquoise eyes. Wears a trench coat.",
+      "personality": "Sadistic, theatrical, and insane. He has no care for his own life and exists solely to ruin Endeavor's career and happiness.",
+      "backstory": "The eldest son of Endeavor. Born with fire stronger than his father's but a body built for ice. He burned himself 'to death' as a child and survived on hatred.",
+      "power": "Blueflame: Generates blue fire, the hottest in the series. Using it burns his own skin, destroying his nerves so he feels no pain."
+    },
+    {
+      "name": "Himiko Toga",
+      "appearance": "Blonde hair in messy buns, cat-like eyes, sharp fangs. Wears a school uniform with an oversized beige cardigan.",
+      "personality": "Obsessed with blood and love. She believes cutting people and becoming them is the ultimate expression of affection. Cheerful murderer.",
+      "backstory": "Suppressed her blood cravings as a child to be 'normal' until she snapped and drank a classmate's blood. Ran away to live freely.",
+      "power": "Transform: Can shapeshift into anyone by ingesting their blood. Awakening: Can use the quirks of the people she transforms into if she loves them."
+    },
+    {
+      "name": "Hawks (Keigo Takami)",
+      "appearance": "Average height, messy ash-blonde hair, massive red wings. Wears a visor and a fur-lined jacket.",
+      "personality": "Laid-back, cynical, and fast-talking. Acts carefree but is a ruthless, highly trained spy. He is willing to get his hands dirty for peace.",
+      "backstory": "Son of a villain. The HPSC bought him as a child and trained him to be the perfect hero soldier. He infiltrated the League of Villains as a double agent.",
+      "power": "Fierce Wings: Telekinetic control over each individual feather. Used for flight, projectiles, and sensing vibrations."
+    },
+    {
+      "name": "Stain (Chizome Akaguro)",
+      "appearance": "No nose, messy hair, red headband/scarf. Wears tactical gear filled with knives and swords.",
+      "personality": "A fanatic ideologue. Believes modern heroes are 'fakes' seeking money and fame. Only All Might is a 'true' hero worthy of life.",
+      "backstory": "A dropout student who became a vigilante, then a serial killer. He killed or crippled 40 heroes to 'purge' society.",
+      "power": "Bloodcurdle: Paralyzes an opponent by ingesting their blood. The duration depends on the victim's blood type (Type B lasts longest)."
+    },
+    {
+      "name": "Overhaul (Kai Chisaki)",
+      "appearance": "Wears a plague doctor mask, white gloves, and a green bomber jacket with purple fur collar.",
+      "personality": "Mysophobic (germaphobe). Cold, calculating, and cruel. He views quirks as a disease that plagues humanity.",
+      "backstory": "A Yakuza leader. He tortured a child named Eri to create bullets that can permanently erase quirks, hoping to sell them to restore the Yakuza's power.",
+      "power": "Overhaul: Can disassemble and reassemble matter with a touch. He can heal wounds, kill instantly, or fuse his body with others."
+    },
+    {
+      "name": "Mirio Togata (Lemillion)",
+      "appearance": "Muscular, blonde cowlick hair, cartoonish blue eyes. Wears a white costume with a red cape and the number 1,000,000.",
+      "personality": "Optimistic, goofy, and incredibly skilled. He embodies the ideal hero. He always smiles to reassure victims.",
+      "backstory": "Born with a difficult quirk that made him fall through floors. He trained it to perfection. Was the top candidate for One For All before Deku.",
+      "power": "Permeation: Can phase his body through any solid matter. When he releases the quirk while in a wall, he is ejected at high speed."
+    },
+    {
+      "name": "Tsuyu Asui (Froppy)",
+      "appearance": "Large hands, wide mouth, long tongue. Posture like a frog. Wears a green and black suit.",
+      "personality": "Blunt, observant, and reliable. She is the emotional pillar of the class and rarely panics.",
+      "backstory": "Took care of her younger siblings while her parents worked, forcing her to mature quickly.",
+      "power": "Frog: Can do anything a frog can do. Wall clinging, 20-meter tongue extension, powerful jumps, camouflage, and secreting toxic mucus."
+    },
+    {
+      "name": "Eijiro Kirishima (Red Riot)",
+      "appearance": "Spiky red hair (dyed), shark teeth, scar over right eye. Wears a costume that exposes his chest.",
+      "personality": "Manly, boisterous, and chivalrous. Values bravery above all else. Deeply loyal to his friends, especially Bakugo.",
+      "backstory": "Originally had black hair and hated his 'boring' quirk. Froze up during a villain attack in middle school and reinvented himself at U.A.",
+      "power": "Hardening: Can turn his entire body rock-hard. 'Red Riot Unbreakable' pushes his hardness to the absolute limit for 30 seconds."
+    },
+    {
+      "name": "Momo Yaoyorozu (Creati)",
+      "appearance": "Tall, long black hair in a ponytail. Wears a revealing red outfit to allow objects to pop out of her skin.",
+      "personality": "Genius, polite, and rich. She struggles with self-confidence when comparing herself to Todoroki or Deku.",
+      "backstory": "Got into U.A. via recommendation. Comes from an incredibly wealthy family.",
+      "power": "Creation: Can create any non-living object from her exposed skin using her fat cells, as long as she understands the atomic structure."
+    },
+    {
+      "name": "Fumikage Tokoyami (Tsukuyomi)",
+      "appearance": "Human body with a black bird head (crow). Wears a dark cloak.",
+      "personality": "Serious, chuunibyou (edgy/poetic), and disciplined. Speaks in archaic/dramatic terms.",
+      "backstory": "Interned under Hawks, who taught him how to fly.",
+      "power": "Dark Shadow: A sentient shadow monster lives inside him. It is weak and docile in light, but massive and uncontrollable in darkness."
+    }
+  ]
 }

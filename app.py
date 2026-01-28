@@ -45,17 +45,13 @@ def apply_theme():
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. DATA PROCESSING (AGGRESSIVE CLEANER) ---
+# --- 3. DATA PROCESSING ---
 def process_response(text):
-    # 1. EXTRACT DIRECTOR LOG (Then delete it from view)
-    # This finds [DIRECTOR] ... [/DIRECTOR] regardless of newlines
-    director_pattern = re.compile(r"\[DIRECTOR\](.*?)\[/DIRECTOR\]", re.DOTALL)
-    d_match = director_pattern.search(text)
+    d_match = re.search(r"\[DIRECTOR\](.*?)\[/DIRECTOR\]", text, flags=re.DOTALL)
     if d_match:
         st.session_state.director_log = d_match.group(1).strip()
-        text = director_pattern.sub("", text) # Remove it from the text
+        text = text.replace(d_match.group(0), "")
 
-    # 2. EXTRACT DATA TAGS (Before deleting them)
     s_match = re.search(r"\|\|\s*STATS\s*\|(.*?)\|\|", text, flags=re.DOTALL)
     if s_match: st.session_state.current_stats = s_match.group(1).strip()
 
@@ -75,17 +71,9 @@ def process_response(text):
             elif "Bio:" in p: b=p.replace("Bio:", "").strip()
         if n!="Unknown": st.session_state.socials[n] = {"rel":r, "status":s, "bio":b}
 
-    # 3. THE HARD CUT (Remove everything after the first tag appears)
-    if "||" in text:
-        text = text.split("||")[0]
-
-    # 4. REMOVE LEFTOVER HEADERS
-    text = text.replace("--- DATA TAGS ---", "")
-    
-    # 5. VISUAL FORMATTING
+    if "||" in text: text = text.split("||")[0]
     text = re.sub(r'(".*?")', r'<span style="color:#00ffff; font-weight:bold;">\1</span>', text, flags=re.DOTALL)
     text = text.replace("*", "").replace("\n", "<br>")
-    text = text.strip()
     
     play_sound(text)
     return text
@@ -124,8 +112,6 @@ def format_characters(world_data):
 # --- 5. GENERATION ---
 def generate_ai_response(retry_mode=False):
     client = Groq(api_key=st.session_state.api_key)
-    
-    # Memory Trim
     if len(st.session_state.messages) > 15:
         st.session_state.messages = [st.session_state.messages[0]] + st.session_state.messages[-10:]
 
@@ -137,30 +123,23 @@ def generate_ai_response(retry_mode=False):
         stream = client.chat.completions.create(
             model=model_to_use,
             messages=st.session_state.messages,
-            temperature=0.7,
+            temperature=0.8, # Higher creativity
             stream=True
         )
-        
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 full_response += chunk.choices[0].delta.content
-                # We don't update the UI yet, we wait until we clean it
-                # Otherwise the user sees the tags for a split second
+                message_placeholder.markdown(f'<div class="ai-bubble">{full_response}</div>', unsafe_allow_html=True)
         
         if not full_response.strip():
             if not retry_mode: return generate_ai_response(retry_mode=True)
             else: return False
 
-        # Save Raw Message
         st.session_state.messages.append({"role": "assistant", "content": full_response})
-        
-        # Process and Display Clean Message
         final_html = process_response(full_response)
         message_placeholder.markdown(f'<div class="ai-bubble">{final_html}</div>', unsafe_allow_html=True)
-        
         autosave()
         return True
-
     except Exception as e:
         if not retry_mode: return generate_ai_response(retry_mode=True)
         else: st.error(f"Error: {e}"); return False
@@ -220,7 +199,10 @@ if not st.session_state.game_active:
     with tab2:
         presets = [f for f in os.listdir('presets') if f.endswith('.json')]
         sel_pre = st.selectbox("Preset", ["None"] + presets)
-        pre_dat = json.load(open(f"presets/{sel_pre}")) if sel_pre != "None" else {}
+        pre_dat = {}
+        if sel_pre != "None":
+            try: pre_dat = json.load(open(f"presets/{sel_pre}"))
+            except: pass
     
     with tab1:
         if not worlds: st.error("No JSONs found."); st.stop()
@@ -236,7 +218,11 @@ if not st.session_state.game_active:
             st.subheader("Identity")
             name = st.text_input("Name", value=pre_dat.get("name", ""))
             race = st.selectbox("Race", w_dat.get('races', ["Human"]))
-            align = st.select_slider("Alignment", ["Heroic", "Neutral", "Evil"], value=pre_dat.get("align", "Neutral"))
+            
+            # --- PRESET ALIGNMENT/PERSONALITY FIX ---
+            def_align = pre_dat.get("align", "Neutral")
+            align = st.select_slider("Alignment", ["Heroic", "Neutral", "Evil"], value=def_align)
+            
             looks = st.text_area("Appearance", value=pre_dat.get("looks", ""))
             pers = st.text_area("Personality", value=pre_dat.get("personality", ""))
             backstory = st.text_area("Backstory", value=pre_dat.get("backstory", ""))
@@ -246,18 +232,36 @@ if not st.session_state.game_active:
             save_pre = st.checkbox("Save Preset")
 
             if st.form_submit_button("Launch"):
+                # --- SAVE PRESET WITH NEW FIELDS ---
                 if save_pre:
-                    with open(f"presets/{name}.json", 'w') as f: json.dump({"name": name, "looks": looks, "power": cust_p, "backstory":backstory}, f)
+                    p_data = {
+                        "name": name, "looks": looks, "power": cust_p, 
+                        "backstory": backstory, "align": align, "personality": pers
+                    }
+                    with open(f"presets/{name}.json", 'w') as f: json.dump(p_data, f)
 
                 arc_year = w_dat['arcs'][t_arc_name]
                 if start_as_baby:
                     current_year = arc_year - t_age
                     display_age = 0
-                    intro_ctx = "Player is being born."
+                    intro_ctx = "The player is being born."
                 else:
                     current_year = arc_year
                     display_age = t_age
-                    intro_ctx = f"Player starts at age {t_age} in the {t_arc_name}."
+                    intro_ctx = f"The player starts at age {t_age} in the {t_arc_name}."
+
+                # --- ALIGNMENT LOGIC ---
+                location_instruction = ""
+                affinity_instruction = ""
+                if align == "Evil":
+                    location_instruction = "Spawn the player in a Villain Hideout, Slum, or Dark Alley."
+                    affinity_instruction = "The player is a VILLAIN. Introduce them to characters like Shigaraki, Stain, or criminal underworld brokers."
+                elif align == "Heroic":
+                    location_instruction = "Spawn the player near U.A. High, a Hero Agency, or a bustling city center."
+                    affinity_instruction = "The player is a HERO/STUDENT. Introduce them to U.A. students or Pro Heroes."
+                else:
+                    location_instruction = "Spawn the player in a neutral city area."
+                    affinity_instruction = "The player is NEUTRAL/CIVILIAN."
 
                 formatted_lore = format_lore(w_dat)
                 formatted_chars = format_characters(w_dat)
@@ -265,7 +269,7 @@ if not st.session_state.game_active:
                 sys_prompt = f"""
                 You are the Engine of an RPG in {w_dat.get('world_name')}.
                 
-                --- LORE DATABASE (STRICT) ---
+                --- LORE DATABASE ---
                 {formatted_lore}
                 CHARACTERS:
                 {formatted_chars}
@@ -280,10 +284,14 @@ if not st.session_state.game_active:
                 Appearance: {looks} | Personality: {pers}
                 Backstory: {backstory}
                 
-                --- RULES ---
-                1. [DIRECTOR] Hidden block FIRST.
-                2. Do not speak for the player.
-                3. DATA TAGS at the VERY END.
+                --- ALIGNMENT LOGIC ---
+                1. Location Rule: {location_instruction}
+                2. Faction Rule: {affinity_instruction}
+                
+                --- ABSOLUTE RULES ---
+                1. [DIRECTOR] Hidden thought block first.
+                2. DATA TAGS at the very end.
+                3. **ANTI-PUPPETING:** Do NOT write the player's dialogue, thoughts, or actions. Write only the environment and NPCs reaction. End the response waiting for the player to act.
                 
                 --- DATA TAGS ---
                 || STATS | Age: {display_age} | Year: {current_year} | Loc: [Place] ||

@@ -2,11 +2,12 @@ import streamlit as st
 import json
 import os
 import re
+import time
 from groq import Groq
-from duckduckgo_search import DDGS # The Web Browser
+from duckduckgo_search import DDGS
 
 # --- 1. CONFIGURATION ---
-st.set_page_config(page_title="Sekai-Hub", page_icon="🌐", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Sekai-Hub", page_icon="⚔️", layout="wide", initial_sidebar_state="expanded")
 
 if "game_active" not in st.session_state: st.session_state.game_active = False
 if "messages" not in st.session_state: st.session_state.messages = []
@@ -15,27 +16,25 @@ if "model_name" not in st.session_state: st.session_state.model_name = "llama-3.
 if "current_stats" not in st.session_state: st.session_state.current_stats = "Initializing..."
 if "socials" not in st.session_state: st.session_state.socials = {}
 if "event_log" not in st.session_state: st.session_state.event_log = []
-if "world_context" not in st.session_state: st.session_state.world_context = "" # Live Web Data
-if "director_log" not in st.session_state: st.session_state.director_log = "" # AI Thoughts
+if "world_context" not in st.session_state: st.session_state.world_context = "" 
+if "director_log" not in st.session_state: st.session_state.director_log = "" 
 
-# Ensure Folders
 if not os.path.exists('saves'): os.makedirs('saves')
 if not os.path.exists('presets'): os.makedirs('presets')
 
-# --- 2. THE WEB SEARCH ENGINE ---
+# --- 2. ROBUST SEARCH ENGINE ---
 def search_the_web(query):
-    """Real-time Wiki Lookup"""
+    """Robust Wiki Lookup with Fallback"""
     try:
         with DDGS() as ddgs:
-            # Search for text
             results = list(ddgs.text(query, max_results=3))
             if results:
-                summary = "\n".join([f"- {r['body']}" for r in results])
-                return summary
-    except Exception as e:
-        return f"Offline Mode (Search failed: {e})"
-    return "No info found."
+                return "\n".join([f"- {r['body']}" for r in results])
+    except Exception:
+        pass # Fail silently so game doesn't crash
+    return "No live internet data available. Relying on internal AI knowledge."
 
+# --- 3. UI & AUDIO ---
 def play_sound(trigger_text):
     trigger_text = trigger_text.lower()
     sounds = {
@@ -54,80 +53,49 @@ def apply_theme():
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap');
         .stApp { background-color: #0a0a0f; color: #E0E0E0; font-family: 'Roboto', sans-serif; }
         
-        .director-box {
-            background-color: #1a1a2e; border-left: 4px solid #ffcc00;
-            padding: 10px; margin-bottom: 10px; font-family: monospace; font-size: 0.85em; color: #aaa;
-        }
-        
-        .user-bubble {
-            background: linear-gradient(135deg, #1c4e80, #2a6fdb);
-            color: white; padding: 15px; border-radius: 20px 20px 0px 20px;
-            margin-bottom: 15px; text-align: right; max-width: 80%; margin-left: auto;
-        }
-        .ai-bubble {
-            background: linear-gradient(135deg, #1a1a1a, #252525);
-            color: #ff80ff; padding: 15px; border-radius: 20px 20px 20px 0px;
-            margin-bottom: 15px; text-align: left; max-width: 80%; margin-right: auto;
-            border-left: 4px solid #d500f9;
-        }
+        .director-box { background-color: #1a1a2e; border-left: 4px solid #ffcc00; padding: 10px; margin-bottom: 10px; font-family: monospace; font-size: 0.85em; color: #aaa; }
+        .user-bubble { background: linear-gradient(135deg, #1c4e80, #2a6fdb); color: white; padding: 15px; border-radius: 20px 20px 0px 20px; margin-bottom: 15px; text-align: right; max-width: 80%; margin-left: auto; }
+        .ai-bubble { background: linear-gradient(135deg, #1a1a1a, #252525); color: #ff80ff; padding: 15px; border-radius: 20px 20px 20px 0px; margin-bottom: 15px; text-align: left; max-width: 80%; margin-right: auto; border-left: 4px solid #d500f9; }
         .stat-card { background: rgba(0, 255, 0, 0.05); border: 1px solid #00ff00; padding: 10px; border-radius: 8px; margin-bottom: 5px; color: #00ff00; font-family: 'Orbitron', monospace; }
+        .arc-current { color: #00ffff; font-weight: bold; border-left: 3px solid #00ffff; padding-left: 5px; background: rgba(0,255,255,0.05); }
+        .arc-future { color: #333; border-left: 3px solid #333; padding-left: 5px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. DATA PROCESSING ---
+# --- 4. DATA PROCESSING ---
 def process_response(text):
-    # EXTRACT DIRECTOR THOUGHTS [DIRECTOR]...[/DIRECTOR]
+    # EXTRACT HIDDEN DATA
     director_match = re.search(r"\[DIRECTOR\](.*?)\[/DIRECTOR\]", text, flags=re.DOTALL)
     if director_match:
-        thought = director_match.group(1).strip()
-        st.session_state.director_log = thought # Save for display
-        text = text.replace(director_match.group(0), "") # Remove from chat
+        st.session_state.director_log = director_match.group(1).strip()
+        text = text.replace(director_match.group(0), "")
 
-    # EXTRACT STATS
     stat_match = re.search(r"\|\|\s*STATS\s*\|(.*?)\|\|", text, flags=re.DOTALL)
-    if stat_match:
-        st.session_state.current_stats = stat_match.group(1).strip()
+    if stat_match: st.session_state.current_stats = stat_match.group(1).strip()
 
-    # EXTRACT SOCIALS
-    npc_matches = re.findall(r"\|\|\s*SOCIAL\s*\|(.*?)\|\|", text, flags=re.DOTALL)
-    for npc_data in npc_matches:
-        parts = [p.strip() for p in npc_data.split('|') if p.strip()]
-        name, rel, status, bio = "Unknown", "Unknown", "Unknown", "No info"
-        for p in parts:
-            if p.startswith("Name:"): name = p.replace("Name:", "").strip()
-            elif p.startswith("Rel:"): rel = p.replace("Rel:", "").strip()
-            elif p.startswith("Status:"): status = p.replace("Status:", "").strip()
-            elif p.startswith("Bio:"): bio = p.replace("Bio:", "").strip()
-        if name != "Unknown": st.session_state.socials[name] = {"rel": rel, "status": status, "bio": bio}
-
-    # EXTRACT EVENTS
     event_matches = re.findall(r"\|\|\s*EVENT\s*\|(.*?)\|\|", text, flags=re.DOTALL)
-    for event_desc in event_matches:
-        clean = event_desc.strip()
-        if not st.session_state.event_log or st.session_state.event_log[-1] != clean: st.session_state.event_log.append(clean)
+    for ev in event_matches:
+        cl = ev.strip()
+        if not st.session_state.event_log or st.session_state.event_log[-1] != cl: st.session_state.event_log.append(cl)
 
-    # CLEAN UP
+    npc_matches = re.findall(r"\|\|\s*SOCIAL\s*\|(.*?)\|\|", text, flags=re.DOTALL)
+    for npc in npc_matches:
+        parts = [p.strip() for p in npc.split('|') if p.strip()]
+        n, r, s, b = "Unknown", "?", "?", "?"
+        for p in parts:
+            if "Name:" in p: n = p.replace("Name:", "").strip()
+            elif "Rel:" in p: r = p.replace("Rel:", "").strip()
+            elif "Status:" in p: s = p.replace("Status:", "").strip()
+            elif "Bio:" in p: b = p.replace("Bio:", "").strip()
+        if n != "Unknown": st.session_state.socials[n] = {"rel":r, "status":s, "bio":b}
+
+    # VISUAL CLEANUP
     if "||" in text: text = text.split("||")[0]
     text = re.sub(r'(".*?")', r'<span style="color:#00ffff; font-weight:bold;">\1</span>', text, flags=re.DOTALL)
-    text = text.replace("*", "") 
-    text = text.replace("\n", "<br>")
+    text = text.replace("*", "").replace("\n", "<br>")
     
     play_sound(text)
     return text
-
-def extract_stats(text):
-    match = re.search(r"\|\|\s*STATS\s*\|(.*?)\|\|", text, flags=re.DOTALL)
-    return match.group(1).strip() if match else st.session_state.current_stats
-
-def load_json_files(prefix):
-    files = {}
-    for filename in os.listdir('.'):
-        if filename.startswith(prefix) and filename.endswith('.json'):
-            with open(filename, 'r') as f:
-                data = json.load(f)
-                key = data.get('world_name', filename)
-                files[key] = data
-    return files
 
 def autosave():
     if st.session_state.game_active:
@@ -145,35 +113,32 @@ def autosave():
 
 def generate_ai_response():
     client = Groq(api_key=st.session_state.api_key)
-    
-    # DYNAMIC SEARCH: Does the last user message ask for info?
-    last_user_msg = st.session_state.messages[-1]['content'] if st.session_state.messages else ""
-    live_search_data = ""
-    
-    # If the AI Director thinks we need info, we search (Simplified for speed)
-    # We pass a strict instruction to the model to use [SEARCH: query] if it needs info
-    # But for now, we rely on the pre-loaded context.
-    
-    with st.spinner("AI Director is searching & thinking..."):
+    with st.spinner("🧠 AI Director is creating the scene..."):
         try:
             resp = client.chat.completions.create(
                 model=st.session_state.model_name,
                 messages=st.session_state.messages,
-                temperature=0.8,
-                max_tokens=1024
+                temperature=0.8
             )
             msg = resp.choices[0].message.content
-            if not msg: return False
             
+            # BLANK MESSAGE FIX
+            if not msg or not msg.strip():
+                st.error("AI Error: Blank Response. Retrying...")
+                time.sleep(1)
+                return generate_ai_response() # Retry once
+                
             st.session_state.messages.append({"role": "assistant", "content": msg})
+            
+            # Immediate Stat Update
             match = re.search(r"\|\|\s*STATS\s*\|(.*?)\|\|", msg, flags=re.DOTALL)
             if match: st.session_state.current_stats = match.group(1).strip()
             
-            process_response(msg) 
+            process_response(msg)
             autosave()
             return True
         except Exception as e:
-            st.error(f"AI Brain Error: {e}")
+            st.error(f"Critical AI Error: {e}")
             return False
 
 def reroll_callback():
@@ -184,16 +149,24 @@ def reroll_callback():
 def continue_callback():
     if generate_ai_response(): st.rerun()
 
+def load_json_files():
+    files = {}
+    for f in os.listdir('.'):
+        if f.startswith('world_') and f.endswith('.json'):
+            try: files[json.load(open(f))['world_name']] = json.load(open(f))
+            except: pass
+    return files
+
 apply_theme()
 
 # --- SIDEBAR ---
 with st.sidebar:
     st.title("💠 SEKAI-HUB")
     if not st.session_state.api_key: st.session_state.api_key = st.text_input("Groq API Key", type="password")
-    st.session_state.model_name = st.selectbox("🧠 Brain", ["llama-3.3-70b-versatile", "llama-3.1-70b-versatile"])
+    st.session_state.model_name = st.selectbox("Brain", ["llama-3.3-70b-versatile", "llama-3.1-70b-versatile"])
 
     if st.session_state.game_active:
-        t1, t2, t3, t4 = st.tabs(["📊 Status", "👥 Socials", "🌍 Lore", "🎬 Director"])
+        t1, t2, t3, t4 = st.tabs(["📊 Stats", "👥 Socials", "🌍 Lore", "🎬 Director"])
         with t1:
             for s in st.session_state.current_stats.split('|'): 
                 if s.strip(): st.markdown(f'<div class="stat-card">{s.strip()}</div>', unsafe_allow_html=True)
@@ -204,10 +177,8 @@ with st.sidebar:
                 with st.expander(f"{n} ({d['rel']})"):
                     st.markdown(f"**Status:** {d['status']}<br><small>{d['bio']}</small>", unsafe_allow_html=True)
         with t3:
-            st.caption("Live Internet Data")
-            st.text_area("Context", value=st.session_state.world_context, height=300, disabled=True)
+            st.text_area("Web Context", value=st.session_state.world_context, height=300, disabled=True)
         with t4:
-            st.caption("AI Thought Process")
             st.markdown(f'<div class="director-box">{st.session_state.director_log}</div>', unsafe_allow_html=True)
 
     st.divider()
@@ -215,7 +186,7 @@ with st.sidebar:
 
 # --- MAIN MENU ---
 if not st.session_state.api_key: st.warning("Enter API Key"); st.stop()
-worlds = load_json_files('world_')
+worlds = load_json_files()
 
 if not st.session_state.game_active:
     st.title("⚔️ Sekai-Hub: Auto-RPG")
@@ -227,97 +198,101 @@ if not st.session_state.game_active:
         pre_dat = json.load(open(f"presets/{sel_pre}")) if sel_pre != "None" else {}
     
     with tab1:
-        sel_w = st.selectbox("World", list(worlds.keys()))
-        if sel_w:
-            w_dat = worlds[sel_w]
-            st.info("📅 **World Timeline:**")
-            arcs = w_dat.get('arcs', {})
-            sorted_arcs = sorted(arcs.items(), key=lambda x: x[1])
-            if sorted_arcs: st.caption(f"{sorted_arcs[0][0]} -> {sorted_arcs[-1][0]}")
+        if not worlds: st.error("No World JSONs found!"); st.stop()
+        sel_w_name = st.selectbox("World", list(worlds.keys()))
+        w_dat = worlds[sel_w_name]
+        
+        # --- NEW ARC SYSTEM ---
+        arcs = w_dat.get('arcs', {})
+        sorted_arcs = sorted(arcs.items(), key=lambda x: x[1])
+        
+        st.info("📅 **Timeline Selection**")
+        c_arc, c_age = st.columns([2, 1])
+        with c_arc:
+            # User picks the Arc Name directly
+            t_arc_name = st.selectbox("Start in which Arc?", list(w_dat['arcs'].keys()))
+        with c_age:
+            t_age = st.number_input("Your Age", 1, 1000, 16)
+            
+        with st.form("new"):
+            st.subheader("Identity")
+            name = st.text_input("Name", value=pre_dat.get("name", ""))
+            race = st.selectbox("Race", w_dat.get('races', ["Human"]))
+            align = st.select_slider("Alignment", ["Heroic", "Neutral", "Evil"], value=pre_dat.get("align", "Neutral"))
+            looks = st.text_area("Appearance", value=pre_dat.get("looks", ""))
+            pers = st.text_area("Personality", value=pre_dat.get("personality", ""))
+            backstory = st.text_area("Backstory (Origin)", value=pre_dat.get("backstory", ""))
+            cust_p = st.text_input("Power", value=pre_dat.get("power", ""))
+            
+            # TOGGLE FOR BIRTH SIMULATION
+            start_as_baby = st.checkbox("Reincarnation Mode (Start as Baby 0 years old instead of selected Age)")
+            save_pre = st.checkbox("Save Preset")
 
-            with st.form("new"):
-                st.subheader("Identity")
-                name = st.text_input("Name", value=pre_dat.get("name", ""))
-                race = st.selectbox("Race", w_dat.get('races', ["Human"]))
-                align = st.select_slider("Alignment", ["Heroic", "Neutral", "Evil"], value=pre_dat.get("align", "Neutral"))
-                looks = st.text_area("Appearance", value=pre_dat.get("looks", ""))
-                pers = st.text_area("Personality", value=pre_dat.get("personality", ""))
-                backstory = st.text_area("Backstory", value=pre_dat.get("backstory", ""))
+            if st.form_submit_button("Launch Simulation"):
+                if save_pre:
+                    with open(f"presets/{name}.json", 'w') as f: json.dump({"name": name, "looks": looks, "power": cust_p, "backstory":backstory}, f)
+
+                # --- SIMPLIFIED MATH ---
+                # Get the absolute year of the arc
+                arc_year = w_dat['arcs'][t_arc_name]
                 
-                st.subheader("Start")
-                c1, c2 = st.columns(2)
-                with c1:
-                    t_arc = st.selectbox("Starting Arc", list(w_dat['arcs'].keys()))
-                    t_age = st.number_input("Age", 1, 1000, 16)
-                with c2:
-                    mode = st.radio("Mode", ["Born as Baby", "Drop-in at Target Age"])
-                    cust_p = st.text_input("Power", value=pre_dat.get("power", ""))
+                if start_as_baby:
+                    # If born as baby, we must be in the past
+                    # Example: Arc is 2000. Age is 16. Birth year is 1984.
+                    current_year = arc_year - t_age
+                    display_age = 0
+                    intro_ctx = "The player is being born. Describe the parents."
+                else:
+                    # Direct Drop-in
+                    current_year = arc_year
+                    display_age = t_age
+                    intro_ctx = f"The player starts at age {t_age}, right at the beginning of the {t_arc_name}."
+
+                # SEARCH
+                with st.spinner("🔍 AI Director is researching..."):
+                    web_data = search_the_web(f"{w_dat.get('world_name')} {t_arc_name} summary factions power system")
+                    st.session_state.world_context = web_data
+
+                sys_prompt = f"""
+                You are the Engine of an RPG in {w_dat.get('world_name')}.
                 
-                save_pre = st.checkbox("Save Preset")
-
-                if st.form_submit_button("Initializing... (This searches the web)"):
-                    if save_pre:
-                        with open(f"presets/{name}.json", 'w') as f: json.dump({"name": name, "looks": looks, "power": cust_p}, f)
-
-                    # 1. CALCULATE TIME
-                    start_year = w_dat['arcs'][t_arc]
-                    if "Baby" in mode:
-                        curr_year = start_year - t_age
-                        age_d = 0
-                        intro = "The player is being born."
-                    else:
-                        curr_year = start_year
-                        age_d = t_age
-                        intro = "The player enters the story."
-
-                    # 2. PERFORM WEB SEARCH (THE MAGIC)
-                    with st.spinner("🔍 Scanning the Multiverse (Searching Web)..."):
-                        search_query = f"{w_dat['world_name']} factions power system summary key characters"
-                        web_data = search_the_web(search_query)
-                        st.session_state.world_context = web_data
-
-                    # 3. BUILD PROMPT
-                    sys_prompt = f"""
-                    You are the Engine of an RPG in {w_dat['world_name']}.
-                    
-                    --- WEB KNOWLEDGE BASE ---
-                    {web_data}
-                    
-                    --- SIMULATION DATA ---
-                    Current Year: {curr_year}
-                    Target Arc: {t_arc}
-                    
-                    --- PLAYER ---
-                    Name: {name} | Race: {race} | Align: {align}
-                    Age: {age_d} | Power: {cust_p}
-                    Backstory: {backstory}
-                    
-                    --- DIRECTOR MODE (IMPORTANT) ---
-                    Before writing the scene, you must output a hidden thought block:
-                    [DIRECTOR]
-                    1. Analyze the year {curr_year}. Who is the main villain right now?
-                    2. Check the player's location.
-                    3. Decide if a Canon Character or OC should appear.
-                    [/DIRECTOR]
-                    
-                    --- DATA TAGS ---
-                    || STATS | Age: {age_d} | Year: {curr_year} | Loc: [Place] ||
-                    || SOCIAL | Name: [Name] | Rel: [Role] | Status: [Action] | Bio: [Lore] ||
-                    || EVENT | [Major Event] ||
-                    
-                    Start simulation. Context: {intro}
-                    """
-                    
-                    st.session_state.character = {"name": name, "race": race}
-                    st.session_state.world = w_dat
-                    st.session_state.messages = [{"role": "system", "content": sys_prompt}]
-                    st.session_state.current_stats = f"Age: {age_d} | Year: {curr_year}"
-                    st.session_state.socials = {}
-                    st.session_state.event_log = []
-                    
-                    if generate_ai_response():
-                        st.session_state.game_active = True
-                        st.rerun()
+                --- WEB KNOWLEDGE ---
+                {web_data}
+                
+                --- TIMELINE ---
+                Current Year: {current_year} (Calendar: {w_dat.get('calendar_system', 'Year')})
+                Current Arc: {t_arc_name}
+                
+                --- PLAYER ---
+                Name: {name} | Race: {race} | Align: {align}
+                Age: {display_age} | Power: {cust_p}
+                Appearance: {looks}
+                Personality: {pers}
+                Backstory: {backstory}
+                
+                --- DIRECTOR INSTRUCTIONS ---
+                1. [DIRECTOR] Output a hidden thought block first. Decide where to spawn the player based on the Arc.
+                2. Do not speak for the player.
+                3. Introduce the setting vividly.
+                
+                --- DATA TAGS ---
+                || STATS | Age: {display_age} | Year: {current_year} | Loc: [Place] ||
+                || SOCIAL | Name: [Name] | Rel: [Role] | Status: [Action] | Bio: [Lore] ||
+                || EVENT | [Major Event] ||
+                
+                Start simulation. Context: {intro_ctx}
+                """
+                
+                st.session_state.character = {"name": name, "race": race}
+                st.session_state.world = w_dat
+                st.session_state.messages = [{"role": "system", "content": sys_prompt}]
+                st.session_state.current_stats = f"Age: {display_age} | Year: {current_year}"
+                st.session_state.socials = {}
+                st.session_state.event_log = []
+                
+                if generate_ai_response():
+                    st.session_state.game_active = True
+                    st.rerun()
 
     with tab3:
         saves = [f for f in os.listdir('saves') if f.endswith('.json')]
@@ -341,15 +316,14 @@ else:
         for m in st.session_state.messages:
             if m["role"]=="user": st.markdown(f'<div class="user-bubble">{m["content"]}</div>', unsafe_allow_html=True)
             elif m["role"]=="assistant": 
-                # Process the Director tag out before showing
                 html = process_response(m["content"])
                 st.markdown(f'<div class="ai-bubble">{html}</div>', unsafe_allow_html=True)
     
     c1, c2, c3 = st.columns([1, 1, 6])
     with c1: 
-        if st.button("🎲 Reroll"): reroll_callback()
+        if st.button("Reroll"): reroll_callback()
     with c2: 
-        if st.button("⏩ Continue"): continue_callback()
+        if st.button("Continue"): continue_callback()
     
     with st.form("act", clear_on_submit=True):
         c1, c2 = st.columns([6,1])

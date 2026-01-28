@@ -123,7 +123,7 @@ def generate_ai_response(retry_mode=False):
         stream = client.chat.completions.create(
             model=model_to_use,
             messages=st.session_state.messages,
-            temperature=0.8, # Higher creativity
+            temperature=0.8,
             stream=True
         )
         for chunk in stream:
@@ -219,7 +219,7 @@ if not st.session_state.game_active:
             name = st.text_input("Name", value=pre_dat.get("name", ""))
             race = st.selectbox("Race", w_dat.get('races', ["Human"]))
             
-            # --- PRESET ALIGNMENT/PERSONALITY FIX ---
+            # Load Alignment correctly from preset
             def_align = pre_dat.get("align", "Neutral")
             align = st.select_slider("Alignment", ["Heroic", "Neutral", "Evil"], value=def_align)
             
@@ -232,7 +232,7 @@ if not st.session_state.game_active:
             save_pre = st.checkbox("Save Preset")
 
             if st.form_submit_button("Launch"):
-                # --- SAVE PRESET WITH NEW FIELDS ---
+                # Save Preset
                 if save_pre:
                     p_data = {
                         "name": name, "looks": looks, "power": cust_p, 
@@ -240,29 +240,28 @@ if not st.session_state.game_active:
                     }
                     with open(f"presets/{name}.json", 'w') as f: json.dump(p_data, f)
 
+                # Time Logic
                 arc_year = w_dat['arcs'][t_arc_name]
                 if start_as_baby:
                     current_year = arc_year - t_age
                     display_age = 0
-                    intro_ctx = "The player is being born."
+                    intro_ctx = "Player is being born."
                 else:
                     current_year = arc_year
                     display_age = t_age
-                    intro_ctx = f"The player starts at age {t_age} in the {t_arc_name}."
+                    intro_ctx = f"Player enters the story at age {t_age}."
 
-                # --- ALIGNMENT LOGIC ---
-                location_instruction = ""
-                affinity_instruction = ""
+                # --- SMART SPAWN LOGIC ---
+                location_rule = ""
+                spawn_warning = ""
+                
                 if align == "Evil":
-                    location_instruction = "Spawn the player in a Villain Hideout, Slum, or Dark Alley."
-                    affinity_instruction = "The player is a VILLAIN. Introduce them to characters like Shigaraki, Stain, or criminal underworld brokers."
+                    location_rule = "Spawn in a Villain Hideout, Slum, or Dark Alley. Do NOT spawn in a school or hero agency."
+                    spawn_warning = "CRITICAL: If the Arc is 'Sports Festival' or 'Entrance Exam', the player is NOT a student. They are watching from the shadows/TV or plotting a crime elsewhere. Villains cannot walk freely in U.A."
                 elif align == "Heroic":
-                    location_instruction = "Spawn the player near U.A. High, a Hero Agency, or a bustling city center."
-                    affinity_instruction = "The player is a HERO/STUDENT. Introduce them to U.A. students or Pro Heroes."
-                else:
-                    location_instruction = "Spawn the player in a neutral city area."
-                    affinity_instruction = "The player is NEUTRAL/CIVILIAN."
-
+                    location_rule = "Spawn near U.A. High or a Hero Agency."
+                    spawn_warning = "If the Arc is a School Event, the player is likely a student participating."
+                
                 formatted_lore = format_lore(w_dat)
                 formatted_chars = format_characters(w_dat)
 
@@ -275,7 +274,7 @@ if not st.session_state.game_active:
                 {formatted_chars}
                 
                 --- TIMELINE ---
-                Current Year: {current_year} ({w_dat.get('calendar_system', 'Year')})
+                Current Year: {current_year}
                 Current Arc: {t_arc_name}
                 
                 --- PLAYER ---
@@ -284,14 +283,10 @@ if not st.session_state.game_active:
                 Appearance: {looks} | Personality: {pers}
                 Backstory: {backstory}
                 
-                --- ALIGNMENT LOGIC ---
-                1. Location Rule: {location_instruction}
-                2. Faction Rule: {affinity_instruction}
-                
-                --- ABSOLUTE RULES ---
-                1. [DIRECTOR] Hidden thought block first.
-                2. DATA TAGS at the very end.
-                3. **ANTI-PUPPETING:** Do NOT write the player's dialogue, thoughts, or actions. Write only the environment and NPCs reaction. End the response waiting for the player to act.
+                --- SPAWN LOGIC ---
+                1. {location_rule}
+                2. {spawn_warning}
+                3. **ANTI-PUPPETING:** Do NOT write the player's dialogue or actions.
                 
                 --- DATA TAGS ---
                 || STATS | Age: {display_age} | Year: {current_year} | Loc: [Place] ||

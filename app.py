@@ -10,7 +10,6 @@ st.set_page_config(page_title="Sekai-Hub", page_icon="⚔️", layout="wide", in
 
 if "game_active" not in st.session_state: st.session_state.game_active = False
 if "messages" not in st.session_state: st.session_state.messages = []
-if "long_term_memory" not in st.session_state: st.session_state.long_term_memory = "Story Start."
 if "api_key" not in st.session_state: st.session_state.api_key = ""
 if "model_name" not in st.session_state: st.session_state.model_name = "llama-3.3-70b-versatile"
 if "current_stats" not in st.session_state: st.session_state.current_stats = "Initializing..."
@@ -21,7 +20,7 @@ if "director_log" not in st.session_state: st.session_state.director_log = "Syst
 if not os.path.exists('saves'): os.makedirs('saves')
 if not os.path.exists('presets'): os.makedirs('presets')
 
-# --- 2. THEME & AUDIO ---
+# --- 2. AUDIO & UI ---
 def play_sound(trigger_text):
     trigger_text = trigger_text.lower()
     sounds = {
@@ -38,7 +37,6 @@ def apply_theme():
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap');
         .stApp { background-color: #0a0a0f; color: #E0E0E0; font-family: 'Roboto', sans-serif; }
-        
         .director-box { background-color: #1a1a2e; border-left: 4px solid #ffcc00; padding: 10px; margin-bottom: 10px; font-family: monospace; font-size: 0.85em; color: #aaa; }
         .user-bubble { background: linear-gradient(135deg, #1c4e80, #2a6fdb); color: white; padding: 15px; border-radius: 20px 20px 0px 20px; margin-bottom: 15px; text-align: right; max-width: 80%; margin-left: auto; }
         .ai-bubble { background: linear-gradient(135deg, #1a1a1a, #252525); color: #ff80ff; padding: 15px; border-radius: 20px 20px 20px 0px; margin-bottom: 15px; text-align: left; max-width: 80%; margin-right: auto; border-left: 4px solid #d500f9; }
@@ -47,25 +45,25 @@ def apply_theme():
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. DATA PROCESSING ---
+# --- 3. DATA PROCESSING (AGGRESSIVE CLEANER) ---
 def process_response(text):
-    # EXTRACT DIRECTOR
-    d_match = re.search(r"\[DIRECTOR\](.*?)\[/DIRECTOR\]", text, flags=re.DOTALL)
+    # 1. EXTRACT DIRECTOR LOG (Then delete it from view)
+    # This finds [DIRECTOR] ... [/DIRECTOR] regardless of newlines
+    director_pattern = re.compile(r"\[DIRECTOR\](.*?)\[/DIRECTOR\]", re.DOTALL)
+    d_match = director_pattern.search(text)
     if d_match:
         st.session_state.director_log = d_match.group(1).strip()
-        text = text.replace(d_match.group(0), "")
+        text = director_pattern.sub("", text) # Remove it from the text
 
-    # EXTRACT STATS
+    # 2. EXTRACT DATA TAGS (Before deleting them)
     s_match = re.search(r"\|\|\s*STATS\s*\|(.*?)\|\|", text, flags=re.DOTALL)
     if s_match: st.session_state.current_stats = s_match.group(1).strip()
 
-    # EXTRACT EVENTS
     e_matches = re.findall(r"\|\|\s*EVENT\s*\|(.*?)\|\|", text, flags=re.DOTALL)
     for ev in e_matches:
         cl = ev.strip()
         if not st.session_state.event_log or st.session_state.event_log[-1] != cl: st.session_state.event_log.append(cl)
 
-    # EXTRACT SOCIALS
     n_matches = re.findall(r"\|\|\s*SOCIAL\s*\|(.*?)\|\|", text, flags=re.DOTALL)
     for npc in n_matches:
         parts = [p.strip() for p in npc.split('|') if p.strip()]
@@ -77,10 +75,17 @@ def process_response(text):
             elif "Bio:" in p: b=p.replace("Bio:", "").strip()
         if n!="Unknown": st.session_state.socials[n] = {"rel":r, "status":s, "bio":b}
 
-    # CLEANUP
-    if "||" in text: text = text.split("||")[0]
+    # 3. THE HARD CUT (Remove everything after the first tag appears)
+    if "||" in text:
+        text = text.split("||")[0]
+
+    # 4. REMOVE LEFTOVER HEADERS
+    text = text.replace("--- DATA TAGS ---", "")
+    
+    # 5. VISUAL FORMATTING
     text = re.sub(r'(".*?")', r'<span style="color:#00ffff; font-weight:bold;">\1</span>', text, flags=re.DOTALL)
     text = text.replace("*", "").replace("\n", "<br>")
+    text = text.strip()
     
     play_sound(text)
     return text
@@ -95,11 +100,11 @@ def autosave():
             "stats": st.session_state.current_stats,
             "socials": st.session_state.socials,
             "events": st.session_state.event_log,
-            "memory": st.session_state.long_term_memory
+            "director": st.session_state.director_log
         }
         with open(f"saves/autosave_{safe}.json", 'w') as f: json.dump(data, f)
 
-# --- 4. TEXT FORMATTERS ---
+# --- 4. FORMATTERS ---
 def format_lore(world_data):
     lore_obj = world_data.get('lore', {})
     text = ""
@@ -120,7 +125,7 @@ def format_characters(world_data):
 def generate_ai_response(retry_mode=False):
     client = Groq(api_key=st.session_state.api_key)
     
-    # MEMORY COMPRESSION
+    # Memory Trim
     if len(st.session_state.messages) > 15:
         st.session_state.messages = [st.session_state.messages[0]] + st.session_state.messages[-10:]
 
@@ -132,22 +137,27 @@ def generate_ai_response(retry_mode=False):
         stream = client.chat.completions.create(
             model=model_to_use,
             messages=st.session_state.messages,
-            temperature=0.8,
+            temperature=0.7,
             stream=True
         )
         
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 full_response += chunk.choices[0].delta.content
-                message_placeholder.markdown(f'<div class="ai-bubble">{full_response}</div>', unsafe_allow_html=True)
+                # We don't update the UI yet, we wait until we clean it
+                # Otherwise the user sees the tags for a split second
         
         if not full_response.strip():
             if not retry_mode: return generate_ai_response(retry_mode=True)
             else: return False
 
+        # Save Raw Message
         st.session_state.messages.append({"role": "assistant", "content": full_response})
+        
+        # Process and Display Clean Message
         final_html = process_response(full_response)
         message_placeholder.markdown(f'<div class="ai-bubble">{final_html}</div>', unsafe_allow_html=True)
+        
         autosave()
         return True
 
@@ -191,7 +201,6 @@ with st.sidebar:
                 with st.expander(f"{n} ({d['rel']})"):
                     st.markdown(f"**Status:** {d['status']}<br><small>{d['bio']}</small>", unsafe_allow_html=True)
         with t3:
-            # Simple Arc Display
             arcs = st.session_state.world.get('arcs', {})
             for a, y in sorted(arcs.items(), key=lambda x: x[1]):
                 st.markdown(f"{y}: {a}")
@@ -200,7 +209,7 @@ with st.sidebar:
     st.divider()
     if st.session_state.game_active and st.button("🛑 Exit"): st.session_state.game_active = False; st.rerun()
 
-# --- GAME ---
+# --- MAIN MENU ---
 if not st.session_state.api_key: st.warning("Enter API Key"); st.stop()
 worlds = load_json_files()
 
@@ -214,7 +223,7 @@ if not st.session_state.game_active:
         pre_dat = json.load(open(f"presets/{sel_pre}")) if sel_pre != "None" else {}
     
     with tab1:
-        if not worlds: st.error("No JSONs found. Create world_mha.json!"); st.stop()
+        if not worlds: st.error("No JSONs found."); st.stop()
         sel_w_name = st.selectbox("World", list(worlds.keys()))
         w_dat = worlds[sel_w_name]
         
@@ -250,7 +259,6 @@ if not st.session_state.game_active:
                     display_age = t_age
                     intro_ctx = f"Player starts at age {t_age} in the {t_arc_name}."
 
-                # READ THE JSON LORE
                 formatted_lore = format_lore(w_dat)
                 formatted_chars = format_characters(w_dat)
 
@@ -273,10 +281,9 @@ if not st.session_state.game_active:
                 Backstory: {backstory}
                 
                 --- RULES ---
-                1. [DIRECTOR] Hidden thought block first.
+                1. [DIRECTOR] Hidden block FIRST.
                 2. Do not speak for the player.
-                3. USE THE CHARACTER DATABASE. Do not hallucinate genders/powers.
-                4. DATA TAGS at the very end.
+                3. DATA TAGS at the VERY END.
                 
                 --- DATA TAGS ---
                 || STATS | Age: {display_age} | Year: {current_year} | Loc: [Place] ||
@@ -291,6 +298,7 @@ if not st.session_state.game_active:
                 st.session_state.current_stats = f"Age: {display_age} | Year: {current_year}"
                 st.session_state.socials = {}
                 st.session_state.event_log = []
+                st.session_state.director_log = "Initializing..."
                 
                 if generate_ai_response():
                     st.session_state.game_active = True
@@ -307,7 +315,7 @@ if not st.session_state.game_active:
                 st.session_state.current_stats = d.get('stats', "")
                 st.session_state.socials = d.get('socials', {})
                 st.session_state.event_log = d.get('events', [])
-                st.session_state.long_term_memory = d.get('memory', "Story Start.")
+                st.session_state.director_log = d.get('director', "")
                 st.session_state.game_active = True
                 st.rerun()
 
@@ -320,6 +328,9 @@ else:
                 html = process_response(m["content"])
                 st.markdown(f'<div class="ai-bubble">{html}</div>', unsafe_allow_html=True)
     
+    if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+        if generate_ai_response(): st.rerun()
+
     c1, c2, c3 = st.columns([1, 1, 6])
     with c1: 
         if st.button("🎲 Reroll"): reroll_callback()
@@ -332,4 +343,4 @@ else:
         with c2: sub = st.form_submit_button("➤")
         if sub and inp:
             st.session_state.messages.append({"role": "user", "content": inp})
-            if generate_ai_response(): st.rerun()
+            st.rerun()

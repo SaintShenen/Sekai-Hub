@@ -1,130 +1,13 @@
 {
   "world_name": "My Hero Academia",
   "calendar_system": "Hero Era",
-  "races": ["Human (Emitter)", "Human (Transformation)", "Human (Mutant)", "Quirkless", "Nomu"],
-  "power_system": "Quirk",
-  "starting_locations": ["Musutafu City", "Deika City", "Kamino Ward", "Jaku Hospital", "U.A. High"],
-  "lore": {
-    "history": "Society collapsed after the glowing baby was born. The Meta Liberation Army fought for quirk rights but lost. The Hero System stabilized society until All Might's retirement.",
-    "factions": ["U.A. High", "League of Villains", "Meta Liberation Army", "HPSC", "Shie Hassaikai"],
-    "key_concepts": ["Quirk Singularity", "Vestiges", "Quirk Awakening", "Nomu Science", "Plus Ultra"]
-  },
+  "races": ["Human (Emitter)", "Human (Transformation)", "Human (Mutant)", "Quirkless"],
   "arcs": {
-    "Entrance Exam": 200,
-    "USJ": 200,
-    "Sports Festival": 200,
-    "Stain Arc": 200,
-    "Kamino Ward": 201,
-    "Overhaul Arc": 201,
-    "Pro Hero Arc": 201,
-    "War Arc": 202,
-    "Final Act": 203
-  },
-  "key_characters": [
-    {
-      "name": "Izuku Midoriya (Deku)",
-      "appearance": "Short, messy green hair, freckles, and scarred arms. Wears a green costume with iron soles and bunny-ear hood remnants.",
-      "personality": "Anxious, muttering, but incredibly heroic and self-sacrificing. Highly analytical, taking notes on everyone's powers. He has a pathological need to save others.",
-      "backstory": "Born Quirkless in a superhuman society. He was bullied for years but still tried to save his bully. All Might recognized his spirit and passed OFA to him.",
-      "power": "One For All: Stockpiled power + 6 other quirks (Blackwhip, Float, Danger Sense, Smokescreen, Fa Jin, Gearshift)."
-    },
-    {
-      "name": "Katsuki Bakugo",
-      "appearance": "Ash-blond spiky hair, red eyes. Wears a tank top and large grenade gauntlets on his arms.",
-      "personality": "Aggressive, rude, and prideful. He has an inferiority complex regarding Deku. Despite his villainous attitude, he is dedicated to being the #1 Winner.",
-      "backstory": "A prodigy praised all his life. He bullied Deku out of fear. At U.A., he was humbled and slowly learned cooperation and guilt.",
-      "power": "Explosion: Sweats nitroglycerin-like substance from palms and ignites it. Can fly using blasts and create Howitzer Impacts."
-    },
-    {
-      "name": "Shoto Todoroki",
-      "appearance": "Split hair (white right, red left) and a burn scar over his left eye. Heterochromatic eyes.",
-      "personality": "Aloof, socially awkward, and blunt. Originally cold and hateful towards his fire side, he is learning to be kind and define his own identity.",
-      "backstory": "Created through a 'Quirk Marriage' to surpass All Might. Abused by Endeavor. His mother burned him with boiling water. He refused to use fire until Deku saved him.",
-      "power": "Half-Cold Half-Hot: Generates ice from right side, fire from left side. Heaven-Piercing Ice Wall, Flashfire Fist."
-    },
-    {
-      "name": "All Might (Toshinori Yagi)",
-      "appearance": "In Muscle Form: Massive, permanent smile, shaded eyes. In True Form: Skeletal, sunken eyes, coughing blood.",
-      "personality": "The charismatic Symbol of Peace. Boisterous and reassuring publicly; anxious and fatherly privately.",
-      "backstory": "Born Quirkless. The 8th user of OFA. He defeated AFO but lost his stomach. He held society together alone for decades.",
-      "power": "One For All (Embers): Super strength and speed. Weather-changing punches (Detroit Smash, United States of Smash)."
-    },
-    {
-      "name": "All For One",
-      "appearance": "A man in a suit. His face is scar tissue with no eyes or nose (uses infrared). Wears a Darth Vader-like life support mask.",
-      "personality": "The Demon Lord. Sophisticated, manipulative, and theatrically evil. He treats people like toys and quirks like trading cards.",
-      "backstory": "Born at the dawn of quirks. He ruled Japan from the shadows for a century. Creator of One For All (by giving his brother a quirk).",
-      "power": "All For One: Can steal quirks and give them to others. Possesses hundreds of stolen abilities (Air Cannon, Regeneration, etc.)."
-    },
-    {
-      "name": "Tomura Shigaraki",
-      "appearance": "Pale skin, messy blue-white hair, dry cracked skin. Wears detached hands all over his body (originally).",
-      "personality": "Started as a man-child gamer speaking in RPG terms. Evolved into a nihilistic destroyer wanting to turn everything to dust.",
-      "backstory": "Tenko Shimura, grandson of Nana Shimura (7th OFA). He accidentally killed his family when his quirk awakened. Groomed by AFO to hate heroes.",
-      "power": "Decay: Anything he touches with 5 fingers turns to dust. Later evolves to spread without contact. Inherits AFO later."
-    },
-    {
-      "name": "Endeavor (Enji Todoroki)",
-      "appearance": "Large man with a beard made of flames. Wears a blue/orange suit.",
-      "personality": "Strict, intense, and originally abusive. Now seeking atonement. He is obsessed with strength but paralyzed by his past sins.",
-      "backstory": "The eternal #2 Hero. Despairing he couldn't beat All Might, he abused his family to create a successor. Now the #1 Hero trying to fix his mess.",
-      "power": "Hellflame: Pyrokinesis. Can fly, melt stone, and use Prominence Burn. Risk of overheating."
-    },
-    {
-      "name": "Shota Aizawa (Eraserhead)",
-      "appearance": "Unkempt black hair, tired eyes, stubble. Wears a scarf (Capture Weapon) and all black.",
-      "personality": "Rational, logical, and strict. He hates media. He cares deeply for his students but expels those with zero potential.",
-      "backstory": "A generic underground hero. He lost his friend Oboro in school, which traumatized him into being a strict teacher.",
-      "power": "Erasure: Can nullify the quirk of anyone he looks at. Effect breaks if he blinks."
-    },
-    {
-      "name": "Hawks (Keigo Takami)",
-      "appearance": "Average height, messy blonde hair, large red wings. Wears a fur-lined jacket and visor.",
-      "personality": "Laid-back, fast-talking, and cynical. He acts carefree but is actually a ruthless government agent.",
-      "backstory": "Son of a villain/murderer. Bought by the HPSC as a child to be a perfect hero soldier. Infiltrated the League of Villains.",
-      "power": "Fierce Wings: Can control each feather individually. Used for flight, swords, and sensing vibrations."
-    },
-    {
-      "name": "Ochaco Uraraka",
-      "appearance": "Bobbed brown hair, permanent blush on cheeks, round face. Pink/Black hero suit.",
-      "personality": "Bubbly and kind, but hides a fierce determination. Motivated by money to support her parents.",
-      "backstory": "From a poor construction family. She wants to be a hero to let her parents retire. Has a crush on Deku.",
-      "power": "Zero Gravity: Anything she touches with finger pads becomes weightless. Can release effect. Gunhead Martial Arts."
-    },
-    {
-      "name": "Dabi (Toya Todoroki)",
-      "appearance": "Patchwork skin held together by staples (burnt purple skin vs healthy skin). Black (later white) hair.",
-      "personality": "Insane, hateful, and theatrical. He exists solely to make Endeavor suffer.",
-      "backstory": "The eldest Todoroki son. Born with fire stronger than Endeavor's but an ice-resistant body. He burned himself 'to death' and became a villain.",
-      "power": "Blueflame: Hottest fire in the series. Burns his own body when used."
-    },
-    {
-      "name": "Himiko Toga",
-      "appearance": "Blonde buns, cat-like eyes, fangs. Wears a school uniform with a beige cardigan.",
-      "personality": "Twisted perception of love. She wants to 'become' the people she loves by cutting them. Cheerful murderer.",
-      "backstory": "Suppressed her blood cravings as a child to be 'normal' until she snapped and drank a classmate's blood.",
-      "power": "Transform: Can shapeshift into anyone by ingesting their blood. Later can use their quirks if she loves them."
-    },
-    {
-      "name": "Stain (Chizome Akaguro)",
-      "appearance": "No nose, red bandana, messy hair. Wears tactical gear with many knives.",
-      "personality": "Ideologue. Believes modern heroes are 'fakes' seeking money. Only All Might is worthy.",
-      "backstory": "Dropped out of hero school. Vigilante turned serial killer. He crippled Iida's brother.",
-      "power": "Bloodcurdle: Paralyzes opponents by tasting their blood. Duration depends on blood type."
-    },
-    {
-      "name": "Overhaul (Kai Chisaki)",
-      "appearance": "Wears a plague doctor mask and a green bomber jacket with fur.",
-      "personality": "Mysophobic (germaphobe). Cold, calculating, and ruthless. Sees quirks as a disease.",
-      "backstory": "Yakuza leader. He experimented on a child (Eri) to create bullets that erase quirks.",
-      "power": "Overhaul: Can disassemble and reassemble matter with a touch. Can heal, kill, or fuse people."
-    },
-    {
-      "name": "Mirio Togata (Lemillion)",
-      "appearance": "Muscular, blonde cowlick, cartoonish blue eyes. Wears a cape.",
-      "personality": "The embodiment of a Hero. Optimistic, funny, and incredibly skilled. Deku's role model.",
-      "backstory": "Had a weak quirk but trained it to perfection. Was the top candidate for OFA before Deku.",
-      "power": "Permeation: Can phase through solid matter. Requires insane calculation to not fall through the earth."
-    }
-  ]
+    "Vigilantes Era": 190,
+    "Prime All Might": 195,
+    "Start of Canon (Deku meets All Might)": 200,
+    "Kamino Ward (AFO vs All Might)": 201,
+    "Paranormal Liberation War": 202,
+    "Final War": 203
+  }
 }

@@ -2,32 +2,9 @@
   "world_name": "One Punch Man World",
   "calendar_system": "Year",
   "races": ["Human", "Cyborg", "Monster", "Esper", "Alien"],
-  "power_system": "Physical / Esper / Tech",
-  "starting_locations": ["City Z (Ghost Town)", "City A (Hero HQ)", "House of Evolution", "Monster Association HQ"],
-  "lore": {
-    "history": "Monsters appear randomly to destroy cities. The Hero Association was formed by a millionaire whose grandson was saved by a stranger. Heroes are ranked C, B, A, and S Class.",
-    "factions": ["Hero Association", "Monster Association", "Neo Heroes", "Blizzard Group", "House of Evolution", "Dark Matter Thieves"],
-    "key_concepts": ["Limiter Break", "Monsterization", "Disaster Levels (Wolf, Tiger, Demon, Dragon, God)", "Esper Power"]
-  },
   "arcs": {
-    "Start of Series (Saitama meets Genos)": 2990,
-    "Deep Sea King Arc": 2990,
-    "Alien Conquerors (Boros)": 2990,
-    "Human Monster (Garou Begins)": 2990,
+    "Start of Canon (Saitama meets Genos)": 2990,
     "Monster Association Raid": 2990,
-    "Cosmic Fear Garou": 2990,
     "Neo Heroes Saga": 2991
-  },
-  "key_characters": [
-    {"name": "Saitama", "appearance": "Bald, yellow suit, red gloves.", "personality": "Bored, depressed, humble.", "backstory": "Trained so hard he went bald and broke his limiter.", "power": "Infinite Strength. Serious Punch."},
-    {"name": "Genos", "appearance": "Full cyborg body, blonde hair.", "personality": "Serious, revenge-driven.", "backstory": "Village destroyed by Mad Cyborg.", "power": "Incineration Cannons."},
-    {"name": "Garou", "appearance": "Silver hair, tight shirt.", "personality": "Roots for the villains.", "backstory": "The Human Monster.", "power": "Water Stream Rock Smashing Fist, Evolution."},
-    {"name": "Tatsumaki", "appearance": "Green curly hair, petite.", "personality": "Arrogant, protective of sister.", "backstory": "S-Class Rank 2.", "power": "Planetary level Psychokinesis."},
-    {"name": "Boros", "appearance": "One eye, blue armor.", "personality": "Seeking a good fight.", "backstory": "Dominator of the Universe.", "power": "Collapsing Star Roaring Cannon."},
-    {"name": "King", "appearance": "Scar on eye, intimidating engine noise.", "personality": "Cowardly otaku.", "backstory": "Rank 7. Luckiest man alive.", "power": "King Engine (Intimidation)."},
-    {"name": "Fubuki", "appearance": "Green bob hair, dress.", "personality": "Inferiority complex.", "backstory": "B-Class Rank 1.", "power": "Hellstorm Telekinesis."},
-    {"name": "Bang (Silver Fang)", "appearance": "Old man, spiky white hair.", "personality": "Wise master.", "backstory": "Rank 3.", "power": "Ultimate Martial Arts."},
-    {"name": "Atomic Samurai", "appearance": "Samurai robes.", "personality": "Prideful.", "backstory": "Rank 4.", "power": "Atomic Slash (Cuts atoms)."},
-    {"name": "Mumen Rider", "appearance": "Bicycle, glasses.", "personality": "Brave heart.", "backstory": "C-Class Rank 1.", "power": "Justice Crash (Bike throw)."}
-  ]
+  }
 }

@@ -2,17 +2,16 @@ import streamlit as st
 import json
 import os
 import re
-import time
+import wikipedia
 from groq import Groq
-from duckduckgo_search import DDGS
 
 # --- 1. CONFIGURATION ---
 st.set_page_config(page_title="Sekai-Hub", page_icon="⚔️", layout="wide", initial_sidebar_state="expanded")
 
 if "game_active" not in st.session_state: st.session_state.game_active = False
 if "messages" not in st.session_state: st.session_state.messages = []
+if "long_term_memory" not in st.session_state: st.session_state.long_term_memory = "Story Start."
 if "api_key" not in st.session_state: st.session_state.api_key = ""
-# Default to versatile, but we have fallback logic now
 if "model_name" not in st.session_state: st.session_state.model_name = "llama-3.3-70b-versatile"
 if "current_stats" not in st.session_state: st.session_state.current_stats = "Initializing..."
 if "socials" not in st.session_state: st.session_state.socials = {}
@@ -20,19 +19,66 @@ if "event_log" not in st.session_state: st.session_state.event_log = []
 if "world_context" not in st.session_state: st.session_state.world_context = "" 
 if "director_log" not in st.session_state: st.session_state.director_log = "" 
 
+# Ensure Folders
 if not os.path.exists('saves'): os.makedirs('saves')
 if not os.path.exists('presets'): os.makedirs('presets')
 
-# --- 2. SEARCH ---
-def search_the_web(query):
+# --- 2. SEARCH ENGINE (WIKIPEDIA) ---
+def search_wiki(query):
+    """Reliable Wikipedia Lookup"""
     try:
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=3))
-            if results: return "\n".join([f"- {r['body']}" for r in results])
-    except: pass
-    return "Offline / No Data Found."
+        # Search for page titles
+        search_results = wikipedia.search(query, results=1)
+        if not search_results: return "No Wiki Data Found."
+        
+        # Get the summary of the first result
+        page_summary = wikipedia.summary(search_results[0], sentences=6)
+        return f"WIKI DATA ({search_results[0]}): {page_summary}"
+    except Exception as e:
+        return f"Wiki Error: {e}"
 
-# --- 3. UI & AUDIO ---
+# --- 3. INFINITE MEMORY SYSTEM ---
+def manage_memory():
+    """
+    Compresses old messages into long_term_memory to save tokens.
+    """
+    # Threshold: If more than 15 messages (System + 14 exchange), compress the oldest 4
+    if len(st.session_state.messages) > 15:
+        client = Groq(api_key=st.session_state.api_key)
+        
+        # Messages to summarize (Skip System [0], take next 4)
+        chunk_to_compress = st.session_state.messages[1:5]
+        
+        # Convert to text
+        conversation_text = "\n".join([f"{m['role']}: {m['content']}" for m in chunk_to_compress])
+        
+        try:
+            # Ask cheap model to summarize
+            summary_prompt = f"""
+            Summarize the following RPG events into the ongoing 'Story Journal'. 
+            Keep it concise but keep important names and events.
+            
+            CURRENT JOURNAL: {st.session_state.long_term_memory}
+            
+            NEW EVENTS TO ADD:
+            {conversation_text}
+            """
+            
+            resp = client.chat.completions.create(
+                model="llama-3.1-8b-instant", # Fast/Cheap model for utility
+                messages=[{"role": "user", "content": summary_prompt}]
+            )
+            
+            # Update Memory
+            st.session_state.long_term_memory = resp.choices[0].message.content
+            
+            # Delete the compressed messages from active chat to free up RAM/Tokens
+            del st.session_state.messages[1:5]
+            
+        except Exception as e:
+            st.error(f"Memory Compression Failed: {e}")
+
+# --- 4. UI & AUDIO ---
 def play_sound(trigger_text):
     trigger_text = trigger_text.lower()
     sounds = {
@@ -55,21 +101,18 @@ def apply_theme():
         .user-bubble { background: linear-gradient(135deg, #1c4e80, #2a6fdb); color: white; padding: 15px; border-radius: 20px 20px 0px 20px; margin-bottom: 15px; text-align: right; max-width: 80%; margin-left: auto; }
         .ai-bubble { background: linear-gradient(135deg, #1a1a1a, #252525); color: #ff80ff; padding: 15px; border-radius: 20px 20px 20px 0px; margin-bottom: 15px; text-align: left; max-width: 80%; margin-right: auto; border-left: 4px solid #d500f9; }
         .stat-card { background: rgba(0, 255, 0, 0.05); border: 1px solid #00ff00; padding: 10px; border-radius: 8px; margin-bottom: 5px; color: #00ff00; font-family: 'Orbitron', monospace; }
-        .arc-current { color: #00ffff; font-weight: bold; border-left: 3px solid #00ffff; padding-left: 5px; background: rgba(0,255,255,0.05); }
+        .memory-box { background: #222; border: 1px solid #555; padding: 10px; font-size: 0.9em; max-height: 200px; overflow-y: auto; color: #aaa; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. DATA PROCESSING ---
+# --- 5. DATA PROCESSING ---
 def process_text_for_display(text):
-    # EXTRACT HIDDEN DATA
+    # EXTRACT DATA
     d_match = re.search(r"\[DIRECTOR\](.*?)\[/DIRECTOR\]", text, flags=re.DOTALL)
     if d_match:
         st.session_state.director_log = d_match.group(1).strip()
         text = text.replace(d_match.group(0), "")
 
-    # EXTRACT DATA TAGS
-    # We don't remove them here, we remove them in the final clean phase
-    # Just parsing logic:
     s_match = re.search(r"\|\|\s*STATS\s*\|(.*?)\|\|", text, flags=re.DOTALL)
     if s_match: st.session_state.current_stats = s_match.group(1).strip()
 
@@ -89,8 +132,7 @@ def process_text_for_display(text):
             elif "Bio:" in p: b=p.replace("Bio:", "").strip()
         if n!="Unknown": st.session_state.socials[n] = {"rel":r, "status":s, "bio":b}
 
-    # VISUAL CLEANUP
-    if "||" in text: text = text.split("||")[0] # Cut off data block
+    if "||" in text: text = text.split("||")[0]
     text = re.sub(r'(".*?")', r'<span style="color:#00ffff; font-weight:bold;">\1</span>', text, flags=re.DOTALL)
     text = text.replace("*", "").replace("\n", "<br>")
     
@@ -106,49 +148,55 @@ def autosave():
             "stats": st.session_state.current_stats,
             "socials": st.session_state.socials,
             "events": st.session_state.event_log,
-            "context": st.session_state.world_context
+            "context": st.session_state.world_context,
+            "memory": st.session_state.long_term_memory
         }
         with open(f"saves/autosave_{safe}.json", 'w') as f: json.dump(data, f)
 
-# --- 5. THE STREAMING BRAIN (Fixes Blank Messages) ---
+# --- 6. GENERATION (STREAMING + MEMORY INJECTION) ---
 def generate_ai_response(retry_mode=False):
     client = Groq(api_key=st.session_state.api_key)
     
-    # If retrying, switch to a smaller/faster model
-    model_to_use = "llama-3.1-8b-instant" if retry_mode else st.session_state.model_name
+    # 1. Manage Memory before generating (Compress old chats)
+    manage_memory()
     
-    # Create a placeholder for the streaming text
+    # 2. Inject Memory into System Prompt (Update the [0] message)
+    # This ensures the AI always knows the summary, even if individual messages are deleted
+    if st.session_state.messages:
+        # Check if we need to update the prompt with new memory
+        curr_sys = st.session_state.messages[0]['content']
+        if "--- LONG TERM MEMORY ---" not in curr_sys:
+            # First time injection
+            new_sys = curr_sys + f"\n\n--- LONG TERM MEMORY (JOURNAL) ---\n{st.session_state.long_term_memory}"
+            st.session_state.messages[0]['content'] = new_sys
+        else:
+            # Replace old memory block with new one
+            base_prompt = curr_sys.split("--- LONG TERM MEMORY")[0]
+            new_sys = base_prompt + f"--- LONG TERM MEMORY (JOURNAL) ---\n{st.session_state.long_term_memory}"
+            st.session_state.messages[0]['content'] = new_sys
+
+    model_to_use = "llama-3.1-8b-instant" if retry_mode else st.session_state.model_name
     message_placeholder = st.empty()
     full_response = ""
     
     try:
-        # STREAMING REQUEST
         stream = client.chat.completions.create(
             model=model_to_use,
             messages=st.session_state.messages,
             temperature=0.8,
-            stream=True # <--- THIS IS THE FIX
+            stream=True
         )
         
-        # Stream the chunks
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 full_response += chunk.choices[0].delta.content
-                # Update UI in real-time (Raw text first)
                 message_placeholder.markdown(f'<div class="ai-bubble">{full_response}</div>', unsafe_allow_html=True)
         
-        # Check if response was empty
         if not full_response or not full_response.strip():
-            if not retry_mode:
-                return generate_ai_response(retry_mode=True) # Recursive fallback
-            else:
-                st.error("AI Generation Failed twice.")
-                return False
+            if not retry_mode: return generate_ai_response(retry_mode=True)
+            else: return False
 
-        # Final Processing
         st.session_state.messages.append({"role": "assistant", "content": full_response})
-        
-        # Apply formatting and data extraction finalized
         final_html = process_text_for_display(full_response)
         message_placeholder.markdown(f'<div class="ai-bubble">{final_html}</div>', unsafe_allow_html=True)
         
@@ -157,12 +205,16 @@ def generate_ai_response(retry_mode=False):
         return True
 
     except Exception as e:
-        if not retry_mode:
-            # Try the fallback model silently
-            return generate_ai_response(retry_mode=True)
-        else:
-            st.error(f"Connection Error: {e}")
-            return False
+        if not retry_mode: return generate_ai_response(retry_mode=True)
+        else: st.error(f"Error: {e}"); return False
+
+def reroll_callback():
+    if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant":
+        st.session_state.messages.pop()
+    if generate_ai_response(): st.rerun()
+
+def continue_callback():
+    if generate_ai_response(): st.rerun()
 
 def load_json_files():
     files = {}
@@ -176,13 +228,12 @@ apply_theme()
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.title("💠 SEKAI-HUB")
+    st.title("💠 HUB SYSTEM")
     if not st.session_state.api_key: st.session_state.api_key = st.text_input("Groq API Key", type="password")
-    # We still let user pick preference, but code auto-downgrades if needed
-    st.session_state.model_name = st.selectbox("Preferred Brain", ["llama-3.3-70b-versatile", "mixtral-8x7b-32768"])
+    st.session_state.model_name = st.selectbox("Brain", ["llama-3.3-70b-versatile", "mixtral-8x7b-32768"])
 
     if st.session_state.game_active:
-        t1, t2, t3, t4 = st.tabs(["📊 Stats", "👥 Socials", "🌍 Lore", "🎬 Director"])
+        t1, t2, t3, t4, t5 = st.tabs(["📊 Stats", "👥 Socials", "🌍 Lore", "🎬 Dir.", "🧠 Mem"])
         with t1:
             for s in st.session_state.current_stats.split('|'): 
                 if s.strip(): st.markdown(f'<div class="stat-card">{s.strip()}</div>', unsafe_allow_html=True)
@@ -192,13 +243,16 @@ with st.sidebar:
             for n, d in st.session_state.socials.items():
                 with st.expander(f"{n} ({d['rel']})"):
                     st.markdown(f"**Status:** {d['status']}<br><small>{d['bio']}</small>", unsafe_allow_html=True)
-        with t3: st.text_area("Context", value=st.session_state.world_context, height=200, disabled=True)
+        with t3: st.text_area("Web Context", value=st.session_state.world_context, height=200, disabled=True)
         with t4: st.markdown(f'<div class="director-box">{st.session_state.director_log}</div>', unsafe_allow_html=True)
+        with t5: 
+            st.caption("Infinite Memory Log")
+            st.markdown(f'<div class="memory-box">{st.session_state.long_term_memory}</div>', unsafe_allow_html=True)
 
     st.divider()
     if st.session_state.game_active and st.button("🛑 Exit"): st.session_state.game_active = False; st.rerun()
 
-# --- MAIN LOOP ---
+# --- MAIN MENU ---
 if not st.session_state.api_key: st.warning("Enter API Key"); st.stop()
 worlds = load_json_files()
 
@@ -212,7 +266,7 @@ if not st.session_state.game_active:
         pre_dat = json.load(open(f"presets/{sel_pre}")) if sel_pre != "None" else {}
     
     with tab1:
-        if not worlds: st.error("No World JSONs found!"); st.stop()
+        if not worlds: st.error("No JSONs"); st.stop()
         sel_w_name = st.selectbox("World", list(worlds.keys()))
         w_dat = worlds[sel_w_name]
         
@@ -231,10 +285,10 @@ if not st.session_state.game_active:
             backstory = st.text_area("Backstory", value=pre_dat.get("backstory", ""))
             cust_p = st.text_input("Power", value=pre_dat.get("power", ""))
             
-            start_as_baby = st.checkbox("Start as Newborn (Reincarnation)")
+            start_as_baby = st.checkbox("Reincarnation (Born 0 years old)")
             save_pre = st.checkbox("Save Preset")
 
-            if st.form_submit_button("Launch Simulation"):
+            if st.form_submit_button("Launch"):
                 if save_pre:
                     with open(f"presets/{name}.json", 'w') as f: json.dump({"name": name, "looks": looks, "power": cust_p, "backstory":backstory}, f)
 
@@ -248,13 +302,15 @@ if not st.session_state.game_active:
                     display_age = t_age
                     intro_ctx = f"Player starts at age {t_age} in the {t_arc_name}."
 
-                with st.spinner("🔍 AI Director is researching..."):
-                    web_data = search_the_web(f"{w_dat.get('world_name')} {t_arc_name} summary factions power system")
+                with st.spinner("🔍 Consulting Wikipedia..."):
+                    # WIKI SEARCH
+                    search_q = f"{w_dat.get('world_name')} {t_arc_name}"
+                    web_data = search_wiki(search_q)
                     st.session_state.world_context = web_data
 
                 sys_prompt = f"""
                 You are the Engine of an RPG in {w_dat.get('world_name')}.
-                --- WEB CONTEXT ---
+                --- WIKI KNOWLEDGE ---
                 {web_data}
                 --- TIMELINE ---
                 Current Year: {current_year} ({w_dat.get('calendar_system', 'Year')})
@@ -281,9 +337,12 @@ if not st.session_state.game_active:
                 st.session_state.current_stats = f"Age: {display_age} | Year: {current_year}"
                 st.session_state.socials = {}
                 st.session_state.event_log = []
+                st.session_state.long_term_memory = "Story Start."
                 
-                st.session_state.game_active = True
-                st.rerun()
+                # First Response Generation
+                if generate_ai_response():
+                    st.session_state.game_active = True
+                    st.rerun()
 
     with tab3:
         saves = [f for f in os.listdir('saves') if f.endswith('.json')]
@@ -297,46 +356,34 @@ if not st.session_state.game_active:
                 st.session_state.socials = d.get('socials', {})
                 st.session_state.event_log = d.get('events', [])
                 st.session_state.world_context = d.get('context', "")
+                st.session_state.long_term_memory = d.get('memory', "Story Start.")
                 st.session_state.game_active = True
                 st.rerun()
 
 else:
-    # CHAT UI
     st.markdown(f"### 🌍 {st.session_state.world['world_name']} | 👤 {st.session_state.character['name']}")
     
     with st.container():
-        # Render History
         for m in st.session_state.messages:
-            if m["role"] == "system": continue # Skip system prompt
-            if m["role"] == "user": 
-                st.markdown(f'<div class="user-bubble">{m["content"]}</div>', unsafe_allow_html=True)
-            elif m["role"] == "assistant":
+            if m["role"]=="user": st.markdown(f'<div class="user-bubble">{m["content"]}</div>', unsafe_allow_html=True)
+            elif m["role"]=="assistant": 
                 html = process_text_for_display(m["content"])
                 st.markdown(f'<div class="ai-bubble">{html}</div>', unsafe_allow_html=True)
     
-    # If the last message was user (and we just reloaded), generate response
+    # If fresh load and last msg was user, trigger AI
     if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-        generate_ai_response()
-    
-    # If this is a fresh game start (only system prompt exists), generate Intro
-    if len(st.session_state.messages) == 1 and st.session_state.messages[0]["role"] == "system":
-        generate_ai_response()
+        if generate_ai_response(): st.rerun()
 
-    # INPUT
+    c1, c2, c3 = st.columns([1, 1, 6])
+    with c1: 
+        if st.button("🎲 Reroll"): reroll_callback()
+    with c2: 
+        if st.button("⏩ Continue"): continue_callback()
+    
     with st.form("act", clear_on_submit=True):
         c1, c2 = st.columns([6,1])
         with c1: inp = st.text_input("Act", placeholder="Action...", label_visibility="collapsed")
         with c2: sub = st.form_submit_button("➤")
         if sub and inp:
             st.session_state.messages.append({"role": "user", "content": inp})
-            st.rerun()
-            
-    # TOOLS
-    c1, c2, c3 = st.columns([1, 1, 6])
-    with c1: 
-        if st.button("🎲 Reroll"): 
-            if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant":
-                st.session_state.messages.pop()
-                st.rerun()
-    with c2: 
-        if st.button("⏩ Continue"): st.rerun()
+            st.rerun() # Rerun to trigger the check above

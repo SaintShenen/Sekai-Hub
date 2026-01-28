@@ -10,61 +10,70 @@ st.set_page_config(page_title="Sekai-Hub", page_icon="⚔️", layout="wide", in
 if "game_active" not in st.session_state: st.session_state.game_active = False
 if "messages" not in st.session_state: st.session_state.messages = []
 if "api_key" not in st.session_state: st.session_state.api_key = ""
-# Default to a smaller model if 70b hits limits
+# Default to Llama 3.3
 if "model_name" not in st.session_state: st.session_state.model_name = "llama-3.3-70b-versatile"
 if "current_stats" not in st.session_state: st.session_state.current_stats = "Initializing..."
 if "socials" not in st.session_state: st.session_state.socials = {}
 if "event_log" not in st.session_state: st.session_state.event_log = []
+if "fullscreen" not in st.session_state: st.session_state.fullscreen = False
 
 # Ensure Folders
 if not os.path.exists('saves'): os.makedirs('saves')
 if not os.path.exists('presets'): os.makedirs('presets')
 
-# --- 2. AUDIO & STYLING ---
-def play_sound(trigger_text):
-    trigger_text = trigger_text.lower()
+# --- 2. UI SOUNDS & STYLING ---
+def play_ui_sound(sound_type="message"):
+    """Plays subtle UI sounds for feedback"""
+    # Using short, hosted UI sounds
     sounds = {
-        "boom": "https://www.myinstants.com/media/sounds/vine-boom.mp3",
-        "explosion": "https://www.myinstants.com/media/sounds/explosion_1.mp3",
-        "punch": "https://www.myinstants.com/media/sounds/punch-sound-effect.mp3",
-        "slash": "https://www.myinstants.com/media/sounds/sword-slash.mp3",
-        "teleport": "https://www.myinstants.com/media/sounds/dbz-teleport.mp3",
-        "flash": "https://www.myinstants.com/media/sounds/flash-sound-effect.mp3"
+        "message": "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3", # Soft tech ping
+        "error": "https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3"     # Error buzz
     }
-    for key, url in sounds.items():
-        if key in trigger_text:
-            st.markdown(f'<audio autoplay><source src="{url}" type="audio/mp3"></audio>', unsafe_allow_html=True)
-            break
+    
+    url = sounds.get(sound_type, sounds["message"])
+    # Invisible Audio Player
+    st.markdown(f"""
+        <audio autoplay style="display:none;">
+        <source src="{url}" type="audio/mp3">
+        </audio>
+    """, unsafe_allow_html=True)
 
 def apply_theme():
-    st.markdown(f"""
-    <style>
+    base_css = """
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap');
-        .stApp {{ background-color: #0a0a0f; color: #E0E0E0; font-family: 'Roboto', sans-serif; }}
-        h1, h2, h3 {{ font-family: 'Orbitron', sans-serif; color: #00e5ff; }}
+        .stApp { background-color: #0a0a0f; color: #E0E0E0; font-family: 'Roboto', sans-serif; }
+        h1, h2, h3 { font-family: 'Orbitron', sans-serif; color: #00e5ff; }
         
         /* BUBBLES */
-        .user-bubble {{
+        .user-bubble {
             background: linear-gradient(135deg, #1c4e80, #2a6fdb);
             color: white; padding: 15px; border-radius: 20px 20px 0px 20px;
             margin-bottom: 15px; text-align: right; max-width: 80%; margin-left: auto;
             border: 1px solid #4da6ff;
-        }}
-        .ai-bubble {{
+        }
+        .ai-bubble {
             background: linear-gradient(135deg, #1a1a1a, #252525);
             color: #ff80ff; padding: 15px; border-radius: 20px 20px 20px 0px;
             margin-bottom: 15px; text-align: left; max-width: 80%; margin-right: auto;
             border-left: 4px solid #d500f9;
-        }}
-        .dialog-text {{ color: #00ffff; font-weight: bold; font-family: "Courier New", monospace; }}
-        .stat-card {{ background: rgba(0, 255, 0, 0.05); border: 1px solid #00ff00; padding: 10px; border-radius: 8px; margin-bottom: 5px; color: #00ff00; font-family: 'Orbitron', monospace; }}
+        }
+        .dialog-text { color: #00ffff; font-weight: bold; font-family: "Courier New", monospace; }
+        .stat-card { background: rgba(0, 255, 0, 0.05); border: 1px solid #00ff00; padding: 10px; border-radius: 8px; margin-bottom: 5px; color: #00ff00; font-family: 'Orbitron', monospace; }
         
-        /* ARC TRACKER */
-        .arc-past {{ color: #555; border-left: 3px solid #555; padding-left: 5px; }}
-        .arc-current {{ color: #00ffff; font-weight: bold; border-left: 3px solid #00ffff; padding-left: 5px; background: rgba(0,255,255,0.05); }}
-        .arc-future {{ color: #333; border-left: 3px solid #333; padding-left: 5px; }}
-    </style>
-    """, unsafe_allow_html=True)
+        .arc-past { color: #555; border-left: 3px solid #555; padding-left: 5px; }
+        .arc-current { color: #00ffff; font-weight: bold; border-left: 3px solid #00ffff; padding-left: 5px; background: rgba(0,255,255,0.05); }
+        .arc-future { color: #333; border-left: 3px solid #333; padding-left: 5px; }
+    """
+
+    if st.session_state.fullscreen:
+        base_css += """
+            [data-testid="stSidebar"] { display: none; }
+            header { display: none; }
+            footer { display: none; }
+            .block-container { padding: 2rem; max-width: 100%; }
+        """
+
+    st.markdown(f"<style>{base_css}</style>", unsafe_allow_html=True)
 
 # --- 3. LOGIC ---
 def format_lore(world_data):
@@ -85,23 +94,17 @@ def format_characters(world_data):
     return text_block
 
 def process_response(text):
-    text = re.sub(r"---.*?---", "", text) 
-    text = re.sub(r"###.*?DATA", "", text)
-    
-    # Event Capture
+    # 1. EXTRACT DATA
     event_matches = re.findall(r"\|\|\s*EVENT\s*\|(.*?)\|\|", text, flags=re.DOTALL)
     for event_desc in event_matches:
         clean = event_desc.strip()
-        if not st.session_state.event_log or st.session_state.event_log[-1] != clean: st.session_state.event_log.append(clean)
-    text = re.sub(r"\|\|\s*EVENT\s*\|(.*?)\|\|", "", text, flags=re.DOTALL)
+        if not st.session_state.event_log or st.session_state.event_log[-1] != clean: 
+            st.session_state.event_log.append(clean)
 
-    # Stats Capture
     stat_match = re.search(r"\|\|\s*STATS\s*\|(.*?)\|\|", text, flags=re.DOTALL)
     if stat_match:
         st.session_state.current_stats = stat_match.group(1).strip()
-        text = text.replace(stat_match.group(0), "")
 
-    # Socials Capture
     npc_matches = re.findall(r"\|\|\s*SOCIAL\s*\|(.*?)\|\|", text, flags=re.DOTALL)
     for npc_data in npc_matches:
         parts = [p.strip() for p in npc_data.split('|') if p.strip()]
@@ -112,14 +115,16 @@ def process_response(text):
             elif p.startswith("Status:"): status = p.replace("Status:", "").strip()
             elif p.startswith("Bio:"): bio = p.replace("Bio:", "").strip()
         if name != "Unknown": st.session_state.socials[name] = {"rel": rel, "status": status, "bio": bio}
-    text = re.sub(r"\|\|\s*SOCIAL\s*\|(.*?)\|\|", "", text, flags=re.DOTALL)
 
-    # Formatting
+    # 2. CLEAN TEXT
+    if "||" in text:
+        text = text.split("||")[0] 
+    
+    text = re.sub(r"---.*?---", "", text)
     text = re.sub(r'(".*?")', r'<span class="dialog-text">\1</span>', text, flags=re.DOTALL)
     text = text.replace("*", "") 
     text = text.replace("\n", "<br>")
     
-    play_sound(text)
     return text
 
 def extract_stats(text):
@@ -158,28 +163,38 @@ def autosave():
 
 def generate_ai_response():
     client = Groq(api_key=st.session_state.api_key)
-    try:
-        resp = client.chat.completions.create(
-            model=st.session_state.model_name,
-            messages=st.session_state.messages,
-            temperature=0.8
-        )
-        msg = resp.choices[0].message.content
-        st.session_state.messages.append({"role": "assistant", "content": msg})
-        st.session_state.current_stats = extract_stats(msg)
-        autosave()
-    except Exception as e:
-        st.error(f"AI Error (Likely Rate Limit): {e}")
-        st.info("Try switching the Model in the sidebar to 'llama-3.1-8b'!")
+    with st.spinner(f"AI ({st.session_state.model_name}) is processing..."):
+        try:
+            resp = client.chat.completions.create(
+                model=st.session_state.model_name,
+                messages=st.session_state.messages,
+                temperature=0.8
+            )
+            msg = resp.choices[0].message.content
+            if not msg or not msg.strip(): return False
+            st.session_state.messages.append({"role": "assistant", "content": msg})
+            
+            match = re.search(r"\|\|\s*STATS\s*\|(.*?)\|\|", msg, flags=re.DOTALL)
+            if match: st.session_state.current_stats = match.group(1).strip()
+            
+            process_response(msg) 
+            autosave()
+            
+            # PLAY SOUND ON SUCCESS
+            play_ui_sound("message")
+            return True
+        except Exception as e:
+            play_ui_sound("error")
+            st.error(f"AI Error: {e}")
+            return False
 
-# --- CALLBACKS FOR NEW BUTTONS ---
 def reroll_callback():
     if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant":
         st.session_state.messages.pop()
-    generate_ai_response()
+    if generate_ai_response(): st.rerun()
 
 def continue_callback():
-    generate_ai_response()
+    if generate_ai_response(): st.rerun()
 
 apply_theme()
 
@@ -188,27 +203,29 @@ with st.sidebar:
     st.title("💠 HUB SYSTEM")
     if not st.session_state.api_key: st.session_state.api_key = st.text_input("Groq API Key", type="password")
     
-    # MODEL SWITCHER
+    # EXPANDED MODEL SELECTOR
     st.session_state.model_name = st.selectbox(
         "🧠 AI Brain", 
-        ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768", "gemma2-9b-it"],
-        help="Switch if you hit a Token Limit error."
+        [
+            "llama-3.3-70b-versatile",  # Smartest
+            "mixtral-8x7b-32768",       # Alternative Smart
+            "llama-3.1-70b-versatile",  # Backup Smart
+            "gemma2-9b-it"              # Different limits
+        ], 
+        help="Switch to Mixtral or Gemma if Llama runs out of tokens!"
     )
 
     if st.session_state.game_active:
         t1, t2, t3, t4 = st.tabs(["📊 Stats", "👥 Socials", "📜 Arcs", "✏️ Edit"])
-        
         with t1:
             for s in st.session_state.current_stats.split('|'): 
                 if s.strip(): st.markdown(f'<div class="stat-card">{s.strip()}</div>', unsafe_allow_html=True)
             if st.button("💾 Save State"): autosave(); st.toast("Saved")
-        
         with t2:
             if not st.session_state.socials: st.info("None")
             for n, d in st.session_state.socials.items():
                 with st.expander(f"{n} ({d['rel']})"):
                     st.markdown(f"**Status:** {d['status']}<br><small>{d['bio']}</small>", unsafe_allow_html=True)
-        
         with t3:
             st.caption("Timeline Status")
             current_year = get_current_year()
@@ -217,21 +234,17 @@ with st.sidebar:
                 if current_year > ay + 1: st.markdown(f'<div class="arc-past">✅ {an}</div>', unsafe_allow_html=True)
                 elif current_year >= ay: st.markdown(f'<div class="arc-current">🔵 {an}</div>', unsafe_allow_html=True)
                 else: st.markdown(f'<div class="arc-future">⚪ {an}</div>', unsafe_allow_html=True)
-
         with t4:
-            st.caption("History Editor (God Mode)")
+            st.caption("History Editor")
             msg_len = len(st.session_state.messages)
             if msg_len > 0:
-                msg_idx = st.number_input("Message Index", 0, msg_len-1, value=msg_len-1)
+                msg_idx = st.number_input("Index", 0, msg_len-1, value=msg_len-1)
                 selected_msg = st.session_state.messages[msg_idx]
-                
-                new_text = st.text_area("Edit Content", value=selected_msg["content"], height=200)
-                if st.button("Update Message"):
+                new_text = st.text_area("Edit", value=selected_msg["content"], height=200)
+                if st.button("Update"):
                     st.session_state.messages[msg_idx]["content"] = new_text
-                    st.toast("History Updated!")
+                    st.toast("Updated!")
                     st.rerun()
-            else:
-                st.info("No messages yet.")
 
     st.divider()
     if st.session_state.game_active and st.button("🛑 Exit Simulation"): st.session_state.game_active = False; st.rerun()
@@ -249,12 +262,9 @@ if not st.session_state.game_active:
         sel_pre = st.selectbox("Preset", ["None"] + presets)
         pre_dat = {}
         if sel_pre != "None":
-            # FIX: Properly handled file opening
             try:
-                with open(f"presets/{sel_pre}") as f:
-                    pre_dat = json.load(f)
-            except:
-                st.error("Error loading preset.")
+                with open(f"presets/{sel_pre}") as f: pre_dat = json.load(f)
+            except: st.error("Error loading preset.")
     
     with tab1:
         sel_w = st.selectbox("World", list(worlds.keys()))
@@ -308,7 +318,6 @@ if not st.session_state.game_active:
                         age_d = t_age
                         intro = "The player enters the story at this age."
 
-                    # Logic Gates
                     canon_start_year = min(w_dat['arcs'].values()) + 15
                     timeline_instruction = ""
                     if curr_year < canon_start_year:
@@ -334,7 +343,8 @@ if not st.session_state.game_active:
                     --- LOGIC GATES ---
                     1. **TIMELINE CHECK:** {timeline_instruction}
                     2. **ANTI-PUPPETING:** Never write the user's thoughts/actions.
-                    --- DATA TAGS ---
+                    3. **CLEAN OUTPUT:** Keep hidden data at the very bottom.
+                    --- DATA TAGS (APPEND AT BOTTOM) ---
                     || STATS | Age: {age_d} | Year: {curr_year} | Loc: [Place] ||
                     || SOCIAL | Name: [Name] | Rel: [Role] | Status: [Action] | Bio: [Lore] ||
                     || EVENT | [Major Event] ||
@@ -346,9 +356,10 @@ if not st.session_state.game_active:
                     st.session_state.current_stats = f"Age: {age_d} | Year: {curr_year}"
                     st.session_state.socials = {}
                     st.session_state.event_log = []
-                    generate_ai_response()
-                    st.session_state.game_active = True
-                    st.rerun()
+                    
+                    if generate_ai_response():
+                        st.session_state.game_active = True
+                        st.rerun()
 
     with tab3:
         saves = [f for f in os.listdir('saves') if f.endswith('.json')]
@@ -368,18 +379,32 @@ if not st.session_state.game_active:
                 except Exception as e: st.error(f"Error: {e}")
 
 else:
-    st.markdown(f"### 🌍 {st.session_state.world['world_name']} | 👤 {st.session_state.character['name']}")
+    # --- GAME HEADER ---
+    c1, c2 = st.columns([8, 2])
+    with c1:
+        st.markdown(f"### 🌍 {st.session_state.world['world_name']} | 👤 {st.session_state.character['name']}")
+    with c2:
+        if st.session_state.fullscreen:
+            if st.button("❌ Exit Full"):
+                st.session_state.fullscreen = False
+                st.rerun()
+        else:
+            if st.button("📺 Immersive"):
+                st.session_state.fullscreen = True
+                st.rerun()
+
+    # --- CHAT CONTAINER ---
     with st.container():
         for m in st.session_state.messages:
             if m["role"]=="user": st.markdown(f'<div class="user-bubble">{m["content"]}</div>', unsafe_allow_html=True)
             elif m["role"]=="assistant": st.markdown(f'<div class="ai-bubble">{process_response(m["content"])}</div>', unsafe_allow_html=True)
     
-    # CONTROL BUTTONS
+    # --- CONTROLS ---
     c1, c2, c3 = st.columns([1, 1, 6])
     with c1:
-        if st.button("🎲 Reroll"): reroll_callback(); st.rerun()
+        if st.button("🎲 Reroll"): reroll_callback()
     with c2:
-        if st.button("⏩ Continue"): continue_callback(); st.rerun()
+        if st.button("⏩ Continue"): continue_callback()
     
     with st.form("act", clear_on_submit=True):
         col_in, col_btn = st.columns([6,1])
@@ -387,5 +412,5 @@ else:
         with col_btn: sub = st.form_submit_button("➤")
         if sub and inp:
             st.session_state.messages.append({"role": "user", "content": inp})
-            generate_ai_response()
-            st.rerun()
+            if generate_ai_response():
+                st.rerun()

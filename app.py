@@ -16,93 +16,52 @@ if "current_stats" not in st.session_state: st.session_state.current_stats = "In
 if "socials" not in st.session_state: st.session_state.socials = {}
 if "event_log" not in st.session_state: st.session_state.event_log = []
 if "director_log" not in st.session_state: st.session_state.director_log = "System Ready."
-# NEW: The Self-Learning Wiki
 if "player_wiki" not in st.session_state: 
-    st.session_state.player_wiki = {
-        "Personality": "Unknown",
-        "Moves": [],
-        "Feats": [],
-        "Reputation": "Nobody"
-    }
+    st.session_state.player_wiki = {"Personality": "Unknown", "Moves": [], "Feats": [], "Reputation": "Nobody"}
 
 if not os.path.exists('saves'): os.makedirs('saves')
 if not os.path.exists('presets'): os.makedirs('presets')
 
-# --- 2. ADVANCED TTS ENGINE (JS Injection) ---
+# --- 2. AUDIO & UI ---
 def text_to_speech_button(text):
-    """
-    Splits text into Narrator vs Character parts and generates JavaScript 
-    to speak them with different voice settings.
-    """
-    # Escape quotes for JS
     safe_text = text.replace('"', '\\"').replace("\n", " ")
-    
-    # JavaScript Logic:
-    # 1. Parse text for quotes.
-    # 2. If quote, use 'Character Voice' (Lower pitch).
-    # 3. If no quote, use 'Narrator Voice'.
-    
     js_code = f"""
     <script>
         function speakText() {{
-            window.speechSynthesis.cancel(); // Stop previous
+            window.speechSynthesis.cancel();
             const fullText = "{safe_text}";
-            
-            // Regex to split by quotes
             const parts = fullText.split(/(\\\".*?\\\")/g);
-            
-            let utteranceQueue = [];
-
             parts.forEach(part => {{
                 if (part.trim() === "") return;
-                
                 let u = new SpeechSynthesisUtterance(part.replace(/\\\"/g, ""));
-                
-                if (part.startsWith('\\"')) {{
-                    // CHARACTER VOICE (Simulated)
-                    u.pitch = 0.8; // Deeper
-                    u.rate = 1.1;  // Faster
-                }} else {{
-                    // NARRATOR VOICE
-                    u.pitch = 1.0;
-                    u.rate = 1.0;
-                }}
-                
+                if (part.startsWith('\\"')) {{ u.pitch = 0.8; u.rate = 1.1; }} 
+                else {{ u.pitch = 1.0; u.rate = 1.0; }}
                 window.speechSynthesis.speak(u);
             }});
         }}
     </script>
-    <button onclick="speakText()" style="
-        background: #444; color: white; border: 1px solid #666; 
-        padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8em;">
-        🔊 Read Aloud
-    </button>
+    <button onclick="speakText()" style="background:#444;color:white;border:1px solid #666;padding:5px 10px;border-radius:5px;cursor:pointer;">🔊 Read</button>
     """
     return st.components.v1.html(js_code, height=40)
 
-# --- 3. UI THEME ---
 def apply_theme():
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap');
         .stApp { background-color: #0a0a0f; color: #E0E0E0; font-family: 'Roboto', sans-serif; }
-        
         .director-box { background-color: #1a1a2e; border-left: 4px solid #ffcc00; padding: 10px; margin-bottom: 10px; font-family: monospace; font-size: 0.85em; color: #aaa; }
         .user-bubble { background: linear-gradient(135deg, #1c4e80, #2a6fdb); color: white; padding: 15px; border-radius: 20px 20px 0px 20px; margin-bottom: 15px; text-align: right; max-width: 80%; margin-left: auto; }
         .ai-bubble { background: linear-gradient(135deg, #1a1a1a, #252525); color: #ff80ff; padding: 15px; border-radius: 20px 20px 20px 0px; margin-bottom: 15px; text-align: left; max-width: 80%; margin-right: auto; border-left: 4px solid #d500f9; }
         .stat-card { background: rgba(0, 255, 0, 0.05); border: 1px solid #00ff00; padding: 10px; border-radius: 8px; margin-bottom: 5px; color: #00ff00; font-family: 'Orbitron', monospace; }
-        
-        /* WIKI STYLES */
         .wiki-section { background: #111; padding: 10px; border-radius: 5px; margin-bottom: 5px; border-left: 3px solid #00e5ff; }
         .wiki-header { color: #00e5ff; font-weight: bold; font-size: 0.9em; text-transform: uppercase; }
         .wiki-content { font-size: 0.9em; color: #ddd; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. DATA PROCESSING (THE LEARNING ENGINE) ---
+# --- 3. DATA PROCESSING ---
 def process_response(text):
-    # 1. EXTRACT PLAYER WIKI UPDATES
-    # Format: || WIKI | Key: Value ||
+    # EXTRACT DATA
     wiki_matches = re.findall(r"\|\|\s*WIKI\s*\|(.*?)\|\|", text, flags=re.DOTALL)
     for update in wiki_matches:
         parts = [p.strip() for p in update.split('|') if p.strip()]
@@ -111,12 +70,9 @@ def process_response(text):
             if "Move:" in p: 
                 move = p.replace("Move:", "").strip()
                 if move not in st.session_state.player_wiki["Moves"]: st.session_state.player_wiki["Moves"].append(move)
-            if "Feat:" in p:
-                feat = p.replace("Feat:", "").strip()
-                st.session_state.player_wiki["Feats"].append(feat)
+            if "Feat:" in p: st.session_state.player_wiki["Feats"].append(p.replace("Feat:", "").strip())
             if "Rep:" in p: st.session_state.player_wiki["Reputation"] = p.replace("Rep:", "").strip()
 
-    # 2. EXTRACT STANDARD DATA
     d_match = re.search(r"\[DIRECTOR\](.*?)\[/DIRECTOR\]", text, flags=re.DOTALL)
     if d_match:
         st.session_state.director_log = d_match.group(1).strip()
@@ -141,13 +97,11 @@ def process_response(text):
             elif "Bio:" in p: b=p.replace("Bio:", "").strip()
         if n!="Unknown": st.session_state.socials[n] = {"rel":r, "status":s, "bio":b}
 
-    # 3. CLEAN UP TAGS
-    # Split at first instance of any tag
-    markers = ["|| STATS", "|| SOCIAL", "|| EVENT", "|| WIKI"]
+    # HARD CUT VISUALS
+    markers = ["|| STATS", "|| SOCIAL", "|| EVENT", "|| WIKI", "[DIRECTOR]"]
     for m in markers:
         if m in text: text = text.split(m)[0]
 
-    # Visuals
     text = re.sub(r'(".*?")', r'<span style="color:#00ffff; font-weight:bold;">\1</span>', text, flags=re.DOTALL)
     text = text.replace("*", "").replace("\n", "<br>")
     
@@ -168,7 +122,7 @@ def autosave():
         }
         with open(f"saves/autosave_{safe}.json", 'w') as f: json.dump(data, f)
 
-# --- 5. FORMATTERS ---
+# --- 4. FORMATTERS ---
 def format_lore(world_data):
     lore_obj = world_data.get('lore', {})
     text = ""
@@ -185,10 +139,9 @@ def format_characters(world_data):
             text += f"Name: {c['name']}\nApp: {c['appearance']}\nPers: {c['personality']}\nBackstory: {c['backstory']}\nPower: {c['power']}\n---\n"
     return text
 
-# --- 6. GENERATION ---
+# --- 5. GENERATION ---
 def generate_ai_response(retry_mode=False):
     client = Groq(api_key=st.session_state.api_key)
-    
     if len(st.session_state.messages) > 15:
         st.session_state.messages = [st.session_state.messages[0]] + st.session_state.messages[-10:]
 
@@ -206,7 +159,7 @@ def generate_ai_response(retry_mode=False):
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 full_response += chunk.choices[0].delta.content
-                message_placeholder.markdown(f'<div class="ai-bubble">{full_response}</div>', unsafe_allow_html=True)
+                # message_placeholder.markdown(f'<div class="ai-bubble">{full_response}</div>', unsafe_allow_html=True)
         
         if not full_response.strip():
             if not retry_mode: return generate_ai_response(retry_mode=True)
@@ -216,9 +169,8 @@ def generate_ai_response(retry_mode=False):
         final_html = process_response(full_response)
         message_placeholder.markdown(f'<div class="ai-bubble">{final_html}</div>', unsafe_allow_html=True)
         
-        # SHOW TTS BUTTON
-        text_to_speech_button(full_response)
-        
+        # Show TTS only for latest
+        text_to_speech_button(full_response.split("||")[0])
         autosave()
         return True
     except Exception as e:
@@ -251,43 +203,27 @@ with st.sidebar:
 
     if st.session_state.game_active:
         t1, t2, t3, t4, t5 = st.tabs(["📊 Stats", "👥 Social", "🧠 Wiki", "📖 Jrnl", "🎬 Dir"])
-        
         with t1:
             for s in st.session_state.current_stats.split('|'): 
                 if s.strip(): st.markdown(f'<div class="stat-card">{s.strip()}</div>', unsafe_allow_html=True)
             if st.button("💾 Save"): autosave(); st.toast("Saved")
-        
         with t2:
             if not st.session_state.socials: st.info("None")
             for n, d in st.session_state.socials.items():
                 with st.expander(f"{n} ({d['rel']})"):
                     st.markdown(f"**Status:** {d['status']}<br><small>{d['bio']}</small>", unsafe_allow_html=True)
-        
-        # --- NEW: PLAYER WIKI ---
         with t3:
             wiki = st.session_state.player_wiki
             st.markdown(f"""
-            <div class="wiki-section">
-                <div class="wiki-header">Observed Personality</div>
-                <div class="wiki-content">{wiki.get('Personality', 'Unknown')}</div>
-            </div>
-            <div class="wiki-section">
-                <div class="wiki-header">Reputation</div>
-                <div class="wiki-content">{wiki.get('Reputation', 'Unknown')}</div>
-            </div>
+            <div class="wiki-section"><div class="wiki-header">Personality</div><div class="wiki-content">{wiki.get('Personality', 'Unknown')}</div></div>
+            <div class="wiki-section"><div class="wiki-header">Reputation</div><div class="wiki-content">{wiki.get('Reputation', 'Unknown')}</div></div>
             """, unsafe_allow_html=True)
-            
-            with st.expander("Known Moves"):
+            with st.expander("Moves"): 
                 for m in wiki.get('Moves', []): st.caption(f"• {m}")
-            with st.expander("Feats"):
+            with st.expander("Feats"): 
                 for f in wiki.get('Feats', []): st.caption(f"• {f}")
-
-        # --- NEW: JOURNAL ---
         with t4:
-            if not st.session_state.event_log: st.info("History is empty.")
-            for i, ev in enumerate(st.session_state.event_log):
-                st.markdown(f"**{i+1}.** {ev}")
-
+            for i, ev in enumerate(st.session_state.event_log): st.markdown(f"**{i+1}.** {ev}")
         with t5: st.markdown(f'<div class="director-box">{st.session_state.director_log}</div>', unsafe_allow_html=True)
 
     st.divider()
@@ -323,25 +259,18 @@ if not st.session_state.game_active:
             st.subheader("Identity")
             name = st.text_input("Name", value=pre_dat.get("name", ""))
             race = st.selectbox("Race", w_dat.get('races', ["Human"]))
-            
             def_align = pre_dat.get("align", "Neutral")
             align = st.select_slider("Alignment", ["Heroic", "Neutral", "Evil"], value=def_align)
-            
             looks = st.text_area("Appearance", value=pre_dat.get("looks", ""))
             pers = st.text_area("Personality", value=pre_dat.get("personality", ""))
             backstory = st.text_area("Backstory", value=pre_dat.get("backstory", ""))
             cust_p = st.text_input("Power", value=pre_dat.get("power", ""))
-            
             start_as_baby = st.checkbox("Reincarnation (Born 0 years old)")
             save_pre = st.checkbox("Save Preset")
 
             if st.form_submit_button("Launch"):
                 if save_pre:
-                    p_data = {
-                        "name": name, "looks": looks, "power": cust_p, 
-                        "backstory": backstory, "align": align, "personality": pers
-                    }
-                    with open(f"presets/{name}.json", 'w') as f: json.dump(p_data, f)
+                    with open(f"presets/{name}.json", 'w') as f: json.dump({"name": name, "looks": looks, "power": cust_p, "backstory":backstory, "align":align, "personality":pers}, f)
 
                 arc_year = w_dat['arcs'][t_arc_name]
                 if start_as_baby:
@@ -367,36 +296,37 @@ if not st.session_state.game_active:
                 formatted_chars = format_characters(w_dat)
 
                 sys_prompt = f"""
-                You are the Engine of an RPG in {w_dat.get('world_name')}.
+                You are the Narrator of a novel in {w_dat.get('world_name')}.
                 
                 --- LORE DATABASE ---
                 {formatted_lore}
                 CHARACTERS:
                 {formatted_chars}
                 
-                --- TIMELINE ---
-                Current Year: {current_year}
-                Current Arc: {t_arc_name}
+                --- SETTING ---
+                Year: {current_year} | Arc: {t_arc_name}
                 
-                --- PLAYER ---
+                --- PROTAGONIST (USER) ---
                 Name: {name} | Race: {race} | Align: {align}
                 Age: {display_age} | Power: {cust_p}
-                Appearance: {looks} | Personality: {pers}
-                Backstory: {backstory}
+                Look: {looks} | Mind: {pers}
+                Origin: {backstory}
                 
-                --- RULES ---
-                1. [DIRECTOR] Hidden block FIRST.
-                2. {location_rule}
-                3. {spawn_warning}
-                4. **OBSERVE THE PLAYER:** At the end, update the player's internal wiki.
+                --- NARRATIVE RULES (STRICT) ---
+                1. **NO META TEXT:** Do NOT print "Simulation Start", "Stats", "Name:", or "Options".
+                2. **NO MENUS:** Do NOT list choices (1, 2, 3).
+                3. **SHOW, DON'T TELL:** Start directly with sensory details (smell, sight, sound).
+                4. **ANTI-PUPPETING:** Describe the situation and wait for the player to act.
+                5. **LOGIC:** {location_rule} {spawn_warning}
                 
-                --- DATA TAGS (APPEND AT BOTTOM) ---
+                --- DATA (HIDDEN AT BOTTOM) ---
+                [DIRECTOR] ... [/DIRECTOR]
                 || STATS | Age: {display_age} | Year: {current_year} | Loc: [Place] ||
                 || SOCIAL | Name: [Name] | Rel: [Role] | Status: [Action] | Bio: [Lore] ||
                 || EVENT | [Major Event] ||
-                || WIKI | Personality: [Current State] | Move: [New Move] | Feat: [New Feat] | Rep: [Public View] ||
+                || WIKI | Personality: [State] | Move: [New] | Feat: [New] | Rep: [Public] ||
                 
-                Start simulation. Context: {intro_ctx}
+                Begin the story now. {intro_ctx}
                 """
                 
                 st.session_state.character = {"name": name, "race": race}
@@ -436,9 +366,7 @@ else:
             elif m["role"]=="assistant": 
                 html = process_response(m["content"])
                 st.markdown(f'<div class="ai-bubble">{html}</div>', unsafe_allow_html=True)
-                # Show Read Aloud only on latest message
-                if m == st.session_state.messages[-1]:
-                    text_to_speech_button(m["content"].split("||")[0])
+                if m == st.session_state.messages[-1]: text_to_speech_button(m["content"].split("||")[0])
     
     if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
         if generate_ai_response(): st.rerun()
